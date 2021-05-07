@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "rootDir": "src",
+    "outDir": "build",
+    "declaration": true,
+    "declarationDir": "types",
+    "newLine": "crlf",
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "strict": true,
+  }
+}
