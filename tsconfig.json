@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "es2020",
     "rootDir": "src",
-    "outDir": "build",
-    "declarationDir": "build/types",
+    "outDir": "dist",
+    "declarationDir": "dist",
     "declaration": true,
     "newLine": "crlf",
     "noImplicitAny": true,

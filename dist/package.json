@@ -1,0 +1,17 @@
+{
+  "name": "wolf-ecs",
+  "version": "0.1.0",
+  "description": "An entity component system framework for JavaScript and TypeScript intended for learning purposes",
+  "main": "main.js",
+  "types": "main.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EnderShadow8/wolf-ecs.git"
+  },
+  "author": "EnderShadow8",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EnderShadow8/wolf-ecs/issues"
+  },
+  "homepage": "https://github.com/EnderShadow8/wolf-ecs"
+}
