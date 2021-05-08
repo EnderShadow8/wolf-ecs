@@ -1,3 +1,2 @@
-dist/*
+dist/
 .eslintignore
-!dist/package.json
