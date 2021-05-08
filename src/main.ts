@@ -9,7 +9,7 @@ class World {
 
   constructor(...componentNames: string[]) {
     for(let cmp of componentNames) {
-      if(!"".match(/^(?:\w|[- ]])*$/)) {
+      if(!(/^(?:[a-zA-Z-])*$/.test(cmp))) {
         throw new TypeError("Invalid component name")
       }
       if(!(cmp in this._cmp)) {
@@ -42,7 +42,7 @@ class World {
     if(cmp) {
       cmp[id] = component
     } else {
-      throw new TypeError("Component type not fo")
+      throw new TypeError("Component type not found")
     }
   }
 
@@ -51,7 +51,7 @@ class World {
     if(c) {
       return delete c[id]
     }
-    throw new TypeError("Component type not fo")
+    throw new TypeError("Component type not found")
   }
 
   getComponent(id: number, cmp: string): unknown {
@@ -74,6 +74,6 @@ class World {
       }
       return ans
     }
-    throw new TypeError("Component type not fo")
+    throw new TypeError("Component type not found")
   }
 }
