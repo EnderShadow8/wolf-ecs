@@ -9,9 +9,14 @@ class World {
 
   constructor(...componentNames: string[]) {
     for(let cmp of componentNames) {
-      if(!(cmp in this._cmp)) {
+      if(!"".match(/^(?:\w|[- ]])*$/)) {
+        throw new TypeError("Invalid component name")
       }
-      this._cmp[cmp] = []
+      if(!(cmp in this._cmp)) {
+        this._cmp[cmp] = []
+      } else {
+        throw new TypeError("Duplicate component names")
+      }
     }
   }
 
@@ -37,7 +42,7 @@ class World {
     if(cmp) {
       cmp[id] = component
     } else {
-      throw new TypeError("Invalid component type")
+      throw new TypeError("Component type not fo")
     }
   }
 
@@ -46,7 +51,7 @@ class World {
     if(c) {
       return delete c[id]
     }
-    throw new TypeError("Invalid component type")
+    throw new TypeError("Component type not fo")
   }
 
   getComponent(id: number, cmp: string): unknown {
@@ -69,6 +74,6 @@ class World {
       }
       return ans
     }
-    throw new TypeError("Invalid component type")
+    throw new TypeError("Component type not fo")
   }
 }
