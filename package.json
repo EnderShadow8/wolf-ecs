@@ -5,7 +5,8 @@
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
-    "prepublish": "copy package.json dist"
+    "prepublish": "copy package.json dist & cd dist",
+    "postpublish": "del package.json & cd ../"
   },
   "repository": {
     "type": "git",
