@@ -1,13 +1,12 @@
 {
   "name": "wolf-ecs",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "description": "An entity component system framework for JavaScript and TypeScript intended for learning purposes",
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
-    "prepub": "copy package.json dist",
-    "pub": "cd dist & npm publish",
-    "postpub": "cd dist & del package.json"
+    "prepub": "robocopy ./ dist package.json README.md & exit 0",
+    "pub": "cd dist && npm publish & del package.json README.md"
   },
   "repository": {
     "type": "git",
@@ -18,8 +17,5 @@
   "bugs": {
     "url": "https://github.com/EnderShadow8/wolf-ecs/issues"
   },
-  "homepage": "https://github.com/EnderShadow8/wolf-ecs",
-  "dependencies": {
-    "wolf-ecs-test": "^0.3.0"
-  }
+  "homepage": "https://github.com/EnderShadow8/wolf-ecs"
 }
