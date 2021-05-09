@@ -5,8 +5,9 @@
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
-    "prepublish": "copy package.json dist & cd dist",
-    "postpublish": "del package.json & cd ../"
+    "prepub": "copy package.json dist",
+    "pub": "cd dist & npm publish",
+    "postpub": "cd dist & del package.json"
   },
   "repository": {
     "type": "git",
@@ -17,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/EnderShadow8/wolf-ecs/issues"
   },
-  "homepage": "https://github.com/EnderShadow8/wolf-ecs"
+  "homepage": "https://github.com/EnderShadow8/wolf-ecs",
+  "dependencies": {
+    "wolf-ecs-test": "^0.3.0"
+  }
 }
