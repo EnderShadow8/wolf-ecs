@@ -6,7 +6,7 @@
   "types": "main.d.ts",
   "scripts": {
     "prepub": "robocopy ./ dist package.json README.md & exit 0",
-    "pub": "cd dist && npm publish & del package.json README.md"
+    "pub": "cd dist & npm publish & del package.json README.md"
   },
   "repository": {
     "type": "git",
