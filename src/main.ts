@@ -54,7 +54,7 @@ export class ECS {
    *
    * @param id Entity ID
    * @param type Name of component
-   * @param cmp Component object
+   * @param type Component object
    * @memberof ECS
    */
    addComponent(id: number, type: string, cmp: any) {
@@ -79,12 +79,12 @@ export class ECS {
   /**
    * Gets a sparse array of all components of a specified type, indexed by entity ID
    *
-   * @param cmp Component type
+   * @param type Component type
    * @return Sparse array of components
    * @memberof ECS
    */
-  getComponents(cmp: string): unknown[] {
-    const c = this._cmp[this._dex[cmp]]
+  getComponents(type: string): unknown[] {
+    const c = this._cmp[this._dex[type]]
     if(c) {
       return c
     }
@@ -95,38 +95,46 @@ export class ECS {
    * Gets a component by entity ID and type
    *
    * @param id Entity ID
-   * @param cmp Component type
+   * @param type Component type
    * @return Component object
    * @memberof ECS
    */
-  getComponent(id: number, cmp: string): unknown {
-    return this.getComponents(cmp)[id]
+  getComponent(id: number, type: string): unknown {
+    return this.getComponents(type)[id]
   }
 
   /**
-   * Creates a bitmask query that can be used in `ECS.prototype.EntityHas`.
+   * Creates a bitmask that can be used in `EntityHas` or `EntityHasNot`. A component name prefixed with `!` will match if an entity does *not* have that component.
    *
-   * @param cmp Component types
-   * @return Bitmask query
+   * @param query Component types
+   * @return Bitmask
    * @memberof ECS
    */
-  createQuery(...cmp: string[]) {
-    let query = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    cmp.forEach((c, i) => {query[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+  createQuery(...types: string[]) { // TODO: Refactor
+    const has = types.filter(c => c[0] !== "!")
+    const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
+    const query = Array.from({length: 2}, () => new Uint32Array(Math.ceil(this._cmp.length / 32)))
+    has.forEach((c, i) => {query[0][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    not.forEach((c, i) => {query[1][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
     return query
   }
 
   /**
-   * Checks whether an Entity has Components specified in a bitmask query.
+   * Checks whether an Entity matches a bitmask query.
    *
    * @param id Entity ID
-   * @param query Bitmask query
+   * @param query Query
    * @return Boolean representing whether the Entity matches the query
    * @memberof ECS
    */
-  entityHas(id: number, query: Uint32Array) {
+  match(id: number, query: Uint32Array[]) {
     for(let i = 0; i < query.length; i++) {
-      if((this._ent[id][i] & query[i]) !== query[i]) {
+      if((this._ent[id][i] & query[i][0]) !== query[i][0]) {
+        return false
+      }
+    }
+    for(let i = 0; i < query.length; i++) {
+      if((this._ent[id][i] & query[i][1]) > 0) {
         return false
       }
     }
@@ -135,7 +143,7 @@ export class ECS {
 }
 
 /**
- * Error relating to an ECS.
+ * Error relating to ECS.
  *
  * @export
  * @class ECSError
