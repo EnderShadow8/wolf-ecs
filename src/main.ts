@@ -111,7 +111,7 @@ export class ECS {
    * @memberof ECS
    */
   createQuery(...cmp: string[]) {
-    let query = new Uint8Array(Math.ceil(this._cmp.length / 32))
+    let query = new Uint32Array(Math.ceil(this._cmp.length / 32))
     cmp.forEach((c, i) => {query[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
     return query
   }
@@ -124,7 +124,7 @@ export class ECS {
    * @return Boolean representing whether the Entity matches the query
    * @memberof ECS
    */
-  entityHas(id: number, query: Uint8Array) {
+  entityHas(id: number, query: Uint32Array) {
     for(let i = 0; i < query.length; i++) {
       if((this._ent[id][i] & query[i]) !== query[i]) {
         return false
