@@ -1,19 +1,21 @@
 /**
- * An object which manages Components and the Entities which contain them
+ * An object which manages Components and the Entities which contain them.
  *
  * @export
- * @class World
+ * @class ECS
  */
-export class World {
+export class ECS {
   private _cmp: unknown[][] = []
-  private _ent: number[] = []
+  private _ent: Uint32Array[] = []
   private _dex: {[cmp: string]: number} = {}
+  private _ids: number[] = []
   curId = 0
 
   /**
-   * Creates an instance of World.
-   * @param types Names of component types
-   * @memberof World
+   * Creates an instance of BinaryECS.
+   * @param types `{Component type name: bytes per component}`
+   * @param maxEntities Maximum number of entities at one time (default 256)
+   * @memberof ECS
    */
   constructor(...types: string[]) {
     for(let i = 0; i < types.length; i++) {
@@ -31,15 +33,15 @@ export class World {
   }
 
   /**
-   * Creates a new Entity attached to the World
+   * Creates a new Entity attached to the ECS
    *
-   * @param [fromObj] Object blueprint for the Entity
+   * @param fromObj Object blueprint for the Entity
    * @return Entity ID
-   * @memberof World
+   * @memberof ECS
    */
   createEntity(fromObj?: any) {
+    this._ent[this.curId] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     if(fromObj) {
-      this._ent[this.curId] = 0
       for(let cmp in fromObj) {
         this.addComponent(this.curId, fromObj[cmp], cmp)
       }
@@ -53,23 +55,25 @@ export class World {
    * @param id Entity ID
    * @param type Name of component
    * @param cmp Component object
-   * @memberof World
+   * @memberof ECS
    */
-  addComponent(id: number, type: string, cmp: any) {
-    this._ent[id] |= 1 << this._dex[type]
+   addComponent(id: number, type: string, cmp: any) {
+    const i = this._dex[type]
+    this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
     this.getComponents(type)[id] = cmp
   }
 
   /**
-   * Removes a component from an entity
+   * Removes a Component from an Entity.
    *
    * @param id Entity ID
    * @param type Component type
-   * @memberof World
+   * @memberof ECS
    */
   removeComponent(id: number, type: string) {
-    this._ent[id] &= ~(1 << this._dex[type])
-    delete this.getComponents(type)[id]
+    const i = this._dex[type]
+    this._ent[id][Math.floor(i / 32)] &= ~(1 << i % 32)
+    // No need to delete since flag is set to 0 already
   }
 
   /**
@@ -77,7 +81,7 @@ export class World {
    *
    * @param cmp Component type
    * @return Sparse array of components
-   * @memberof World
+   * @memberof ECS
    */
   getComponents(cmp: string): unknown[] {
     const c = this._cmp[this._dex[cmp]]
@@ -93,71 +97,54 @@ export class World {
    * @param id Entity ID
    * @param cmp Component type
    * @return Component object
-   * @memberof World
+   * @memberof ECS
    */
   getComponent(id: number, cmp: string): unknown {
     return this.getComponents(cmp)[id]
   }
 
   /**
-   * Creates a bitmask query that can be used in `World.prototype.EntityHas`
+   * Creates a bitmask query that can be used in `ECS.prototype.EntityHas`.
    *
    * @param cmp Component types
    * @return Bitmask query
-   * @memberof World
+   * @memberof ECS
    */
-  createQuery(...cmp: string[]): number {
-    let query = 0
-    cmp.forEach(c => {query |= 1 << this._dex[c]})
+  createQuery(...cmp: string[]) {
+    let query = new Uint8Array(Math.ceil(this._cmp.length / 32))
+    cmp.forEach((c, i) => {query[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
     return query
   }
-  
+
   /**
-   * Checks whether an entity has components specified in a bitmask query
+   * Checks whether an Entity has Components specified in a bitmask query.
    *
    * @param id Entity ID
    * @param query Bitmask query
    * @return Boolean representing whether the Entity matches the query
-   * @memberof World
+   * @memberof ECS
    */
-  entityHas(id: number, query: number) {
-    return (this._ent[id] & query) === query
+  entityHas(id: number, query: Uint8Array) {
+    for(let i = 0; i < query.length; i++) {
+      if((this._ent[id][i] & query[i]) !== query[i]) {
+        return false
+      }
+    }
+    return true
   }
-
-  // execute(sys: (c: {[name: string]: any}) => void, query: string[]) {
-  //   const cmp = query.filter(c => c[0] !== "!" && c[0] !== "@")
-  //   const req = query.filter(c => c[0] === "@").map(c => c.slice(1))
-  //   const not = query.filter(c => c[0] === "!").map(c => c.slice(1))
-  //   const cmps = cmp.map(c => this.getComponents(c))
-  //   const reqs = req.map(c => this.getComponents(c))
-  //   const nots = not.map(c => this.getComponents(c))
-  //   if(cmp.concat(req).every(c => c in this._cmp)) {
-  //     outer:
-  //     for(let i = 0; i < Math.min(...cmps.concat(reqs).map(c => c.length)); i++) {
-  //       for(let c of cmps.concat(reqs)) {
-  //         if(c === undefined) {
-  //           continue outer
-  //         }
-  //       }
-  //       for(let c of nots) {
-  //         if(c !== undefined) {
-  //           continue outer
-  //         }
-  //       }
-  //       let obj: {[name: string]: any} = {}
-  //       for(let c of cmp) {
-  //         obj[c] = this.getComponents(c)[i]
-  //       }
-  //       sys(obj)
-  //     }
-  //   }
-  //   throw new ECSError("Component type not found")
-  // }
 }
 
-export class ECSError extends Error {
+/**
+ * Error relating to an ECS.
+ *
+ * @export
+ * @class ECSError
+ * @extends {Error}
+ */
+ export class ECSError extends Error {
   constructor(message: string) {
     super(message)
     this.name = "ECSError"
   }
 }
+
