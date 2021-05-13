@@ -1,8 +1,12 @@
 {
   "name": "wolf-ecs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An entity component system framework for JavaScript and TypeScript intended for learning purposes",
-  "keywords": ["ecs", "entity component system", "gamedev"],
+  "keywords": [
+    "ecs",
+    "entity component system",
+    "gamedev"
+  ],
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
