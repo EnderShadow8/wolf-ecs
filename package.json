@@ -10,7 +10,8 @@
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
-    "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist"
+    "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist",
+    "doc": "typedoc src"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/EnderShadow8/wolf-ecs",
   "devDependencies": {
-    "typescript": "^4.2.0"
+    "typescript": "^4.2.0",
+    "typedoc": "^0.20.36"
   }
 }
