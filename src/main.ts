@@ -12,7 +12,7 @@ export class ECS {
   curId = 0
 
   /**
-   * Creates an instance of BinaryECS.
+   * Creates an instance of ECS.
    * @param types `{Component type name: bytes per component}`
    * @param maxEntities Maximum number of entities at one time (default 256)
    * @memberof ECS
@@ -54,13 +54,15 @@ export class ECS {
    *
    * @param id Entity ID
    * @param type Name of component
-   * @param type Component object
+   * @param cmp Component object
    * @memberof ECS
    */
-  addComponent(id: number, type: string, cmp: any) {
+  addComponent(id: number, type: string, cmp?: any) {
     const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
-    this.getComponents(type)[id] = cmp
+    if(cmp) {
+      this.getComponents(type)[id] = cmp
+    }
   }
 
   /**
@@ -84,9 +86,9 @@ export class ECS {
    * @memberof ECS
    */
   getComponents(type: string): unknown[] {
-    const c = this._cmp[this._dex[type]]
-    if(c) {
-      return c
+    const cmp = this._cmp[this._dex[type]]
+    if(cmp) {
+      return cmp
     }
     throw new ECSError("Component type not found")
   }
