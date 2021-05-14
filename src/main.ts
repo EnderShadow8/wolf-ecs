@@ -110,12 +110,14 @@ export class ECS {
    * @return Bitmask
    * @memberof ECS
    */
-  createQuery(...types: string[]) { // TODO: Refactor
+  createQuery(...types: string[]) {
     const has = types.filter(c => c[0] !== "!")
     const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
-    const query = Array.from({length: 2}, () => new Uint32Array(Math.ceil(this._cmp.length / 32)))
+    const query = Array.from({length: 1 + +!!not.length}, () => new Uint32Array(Math.ceil(this._cmp.length / 32)))
     has.forEach((c, i) => {query[0][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
-    not.forEach((c, i) => {query[1][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    if(not.length) {
+      not.forEach((c, i) => {query[1][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    }
     return query
   }
 
@@ -128,14 +130,16 @@ export class ECS {
    * @memberof ECS
    */
   match(id: number, query: Uint32Array[]) {
-    for(let i = 0; i < query.length; i++) {
-      if((this._ent[id][i] & query[i][0]) !== query[i][0]) {
+    for(let i = 0; i < query[0].length; i++) {
+      if((this._ent[id][i] & query[0][i]) !== query[0][i]) {
         return false
       }
     }
-    for(let i = 0; i < query.length; i++) {
-      if((this._ent[id][i] & query[i][1]) > 0) {
-        return false
+    if(query[1]) {
+      for(let i = 0; i < query[1].length; i++) {
+        if((this._ent[id][i] & query[1][i]) > 0) {
+          return false
+        }
       }
     }
     return true
@@ -155,4 +159,3 @@ export class ECSError extends Error {
     this.name = "ECSError"
   }
 }
-
