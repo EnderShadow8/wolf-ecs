@@ -57,7 +57,7 @@ export class ECS {
    * @param type Component object
    * @memberof ECS
    */
-   addComponent(id: number, type: string, cmp: any) {
+  addComponent(id: number, type: string, cmp: any) {
     const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
     this.getComponents(type)[id] = cmp
@@ -149,7 +149,7 @@ export class ECS {
  * @class ECSError
  * @extends {Error}
  */
- export class ECSError extends Error {
+export class ECSError extends Error {
   constructor(message: string) {
     super(message)
     this.name = "ECSError"
