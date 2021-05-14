@@ -55,6 +55,7 @@ export class ECS {
    * @param id Entity ID
    * @param type Name of component
    * @param cmp Component object
+   * @chainable
    * @memberof ECS
    */
   addComponent(id: number, type: string, cmp?: any) {
@@ -63,6 +64,7 @@ export class ECS {
     if(cmp) {
       this.getComponents(type)[id] = cmp
     }
+    return this
   }
 
   /**
@@ -70,12 +72,14 @@ export class ECS {
    *
    * @param id Entity ID
    * @param type Component type
+   * @chainable
    * @memberof ECS
    */
   removeComponent(id: number, type: string) {
     const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] &= ~(1 << i % 32)
     // No need to delete since flag is set to 0 already
+    return this
   }
 
   /**
