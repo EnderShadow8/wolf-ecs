@@ -10,8 +10,7 @@
   "main": "main.js",
   "types": "main.d.ts",
   "scripts": {
-    "prepub": "robocopy ./ dist package.json README.md LICENSE & exit 0",
-    "pub": "cd dist & npm publish & cd ../ & del dist"
+    "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist"
   },
   "repository": {
     "type": "git",
