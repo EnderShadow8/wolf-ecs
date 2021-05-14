@@ -9,7 +9,7 @@ export class ECS {
   private _ent: Uint32Array[] = []
   private _dex: {[cmp: string]: number} = {}
   private _ids: number[] = []
-  curId = 0
+  curID = 0
 
   /**
    * Creates an instance of ECS.
@@ -39,14 +39,14 @@ export class ECS {
    * @return Entity ID
    * @memberof ECS
    */
-  createEntity(fromObj?: any) {
-    this._ent[this.curId] = new Uint32Array(Math.ceil(this._cmp.length / 32))
+  createEntity(fromObj?: any): any {
+    this._ent[this.curID] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     if(fromObj) {
       for(let cmp in fromObj) {
-        this.addComponent(this.curId, fromObj[cmp], cmp)
+        this.addComponent(this.curID, fromObj[cmp], cmp)
       }
     }
-    return this.curId++
+    return this.curID++
   }
 
   /**
@@ -112,7 +112,7 @@ export class ECS {
    * @return Bitmask
    * @memberof ECS
    */
-  createQuery(...types: string[]) {
+  createQuery(...types: string[]): any {
     const has = types.filter(c => c[0] !== "!")
     const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
     const query = Array.from({length: 1 + +!!not.length}, () => new Uint32Array(Math.ceil(this._cmp.length / 32)))
@@ -131,7 +131,7 @@ export class ECS {
    * @return Boolean representing whether the Entity matches the query
    * @memberof ECS
    */
-  match(id: number, query: Uint32Array[]) {
+  match(id: number, query: Uint32Array[]): any {
     for(let i = 0; i < query[0].length; i++) {
       if((this._ent[id][i] & query[0][i]) !== query[0][i]) {
         return false
