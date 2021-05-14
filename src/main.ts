@@ -13,8 +13,7 @@ export class ECS {
 
   /**
    * Creates an instance of ECS.
-   * @param types `{Component type name: bytes per component}`
-   * @param maxEntities Maximum number of entities at one time (default 256)
+   * @param types List of component type names
    * @memberof ECS
    */
   constructor(...types: string[]) {
