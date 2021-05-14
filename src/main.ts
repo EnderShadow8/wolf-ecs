@@ -39,11 +39,11 @@ export class ECS {
    * @return Entity ID
    * @memberof ECS
    */
-  createEntity(fromObj?: any): number {
+  createEntity(fromObj?: {[type: string]: unknown}): number {
     this._ent[this.curID] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     if(fromObj) {
       for(let cmp in fromObj) {
-        this.addComponent(this.curID, fromObj[cmp], cmp)
+        this.addComponent(this.curID, cmp, fromObj[cmp])
       }
     }
     return this.curID++
@@ -58,7 +58,7 @@ export class ECS {
    * @chainable
    * @memberof ECS
    */
-  addComponent(id: number, type: string, cmp?: any) {
+  addComponent(id: number, type: string, cmp?: unknown) {
     const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
     if(cmp) {
