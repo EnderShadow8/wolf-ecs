@@ -4,7 +4,7 @@ class p {
   constructor() {
     this.foo = 3
   }
-  
+
   bar() {
     this.foo += 3
   }
@@ -18,23 +18,20 @@ console.log("func")
 const nofunc = new Array(n).fill().map(() => ({foo: 4, bar: 3}))
 console.log("nofunc")
 
-const bp = Date.now()
+console.time("prot")
 for(let i = 0; i < n; i++) {
   prot[i].bar()
 }
-const ap = Date.now()
-console.log(ap - bp)
+console.timeEnd("prot")
 
-const bf = Date.now()
+console.time("func")
 for(let i = 0; i < n; i++) {
   func[i].bar()
 }
-const af = Date.now()
-console.log(af - bf)
+console.timeEnd("func")
 
-const bn = Date.now()
+console.time("nofunc")
 for(let i = 0; i < n; i++) {
   nofunc[i].foo += nofunc[i].bar
 }
-const an = Date.now()
-console.log(an - bn)
+console.timeEnd("nofunc")

@@ -8,31 +8,26 @@ console.log("uint8")
 const uint32 = new Uint32Array(Math.floor(n / 32)).map(() => Math.floor(Math.random() * 2 ** 32))
 console.log("uint32")
 
-// const bb = Date.now()
+// console.time("bool")
 // for(let i = 0; i < bool.length; i++) {
 //   if(bool[i] !== bool[i]) {
 //     break
 //   }
 // }
-// const ab = Date.now()
-// console.log(ab - bb)
+// console.timeEnd("bool")
 
-const b8 = Date.now()
+console.time("uint8")
 for(let i = 0; i < uint8.length; i++) {
   if((uint8[i] & uint8[i]) !== uint8[i]) {
-    console.log("break8")
     break
   }
 }
-const a8 = Date.now()
-console.log(a8 - b8)
+console.timeEnd("uint8")
 
-const b32 = Date.now()
+console.time("uint32")
 for(let i = 0; i < uint32.length; i++) {
   if((uint32[i] & uint32[i]) >>> 0 !== uint32[i]) {
-    console.log("break32")
     break
   }
 }
-const a32 = Date.now()
-console.log(a32 - b32)
+console.timeEnd("uint32")
