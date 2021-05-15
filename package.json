@@ -1,6 +1,6 @@
 {
   "name": "wolf-ecs",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "An entity component system framework for JavaScript and TypeScript intended for learning purposes",
   "keywords": [
     "ecs",
