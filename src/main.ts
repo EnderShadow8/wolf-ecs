@@ -272,7 +272,9 @@ export class ECSError extends Error {
 function compact(a: unknown[]) {
   let j = 0
   for(let i in a) {
-    a[j++] = i
+    if(typeof a[i] === "number") {
+      a[j++] = a[i]
+    }
   }
   a.length = j
 }
