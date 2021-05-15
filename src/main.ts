@@ -159,9 +159,12 @@ export class ECS {
         }
         if(!match && s.keys[id]) { // Too slow?
           delete s.keys[id]
-          s.entities.splice(s.entities.indexOf(id), 1)
+          delete s.entities[s.entities.indexOf(id)]
         }
       }
+    }
+    for(let s of this._sys) {
+      compact(s.entities)
     }
     this._dirty = []
     this._dirtykeys = []
@@ -199,11 +202,9 @@ export class ECS {
         return false
       }
     }
-    if(query[1]) {
-      for(let i = 0; i < query[1].length; i++) {
-        if((this._ent[id][i] & query[1][i]) > 0) {
-          return false
-        }
+    for(let i = 0; i < query[1].length; i++) {
+      if((this._ent[id][i] & query[1][i]) > 0) {
+        return false
       }
     }
     return true
@@ -261,4 +262,17 @@ export class ECSError extends Error {
     super(message)
     this.name = "ECSError"
   }
+}
+
+/**
+ * Removes all empty elements of an array in place.
+ *
+ * @param a Array to be compacted
+ */
+function compact(a: unknown[]) {
+  let j = 0
+  for(let i in a) {
+    a[j++] = i
+  }
+  a.length = j
 }
