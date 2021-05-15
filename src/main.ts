@@ -1,24 +1,29 @@
+type Query = [Uint32Array, Uint32Array]
+
 /**
- * An object which manages Components and the Entities which contain them.
+ * An object which manages entities, components and systems.
  *
  * @export
  * @class ECS
  */
 export class ECS {
   private _cmp: unknown[][] = []
-  private _ent: Uint32Array[] = []
   private _dex: {[cmp: string]: number} = {}
+  private _ent: Uint32Array[] = []
+  private _sys: System[] = []
+  private _dirty: number[] = []
+  private _dirtykeys: boolean[] = [] // O(1) lookup table
   private _ids: number[] = []
   curID = 0
 
   /**
    * Creates an instance of ECS.
-   * @param types List of component type names
+   * @param components Array of component type names
    * @memberof ECS
    */
-  constructor(...types: string[]) {
-    for(let i = 0; i < types.length; i++) {
-      const cmp = types[i]
+  constructor(...components: string[]) {
+    for(let i = 0; i < components.length; i++) {
+      const cmp = components[i]
       if(!(/^(?:[a-zA-Z0-9-])*$/.test(cmp))) {
         throw new ECSError("Invalid component type name")
       }
@@ -30,9 +35,21 @@ export class ECS {
       }
     }
   }
+  
+  /**
+   * Adds a system to the ECS.
+   * Systems execute in the order they are added.
+   *
+   * @param sys System to be added
+   * @memberof ECS
+   */
+  addSystem(sys: System) {
+    sys.ecs = this
+    this._sys.push(sys)
+  }
 
   /**
-   * Creates a new Entity attached to the ECS
+   * Creates a new Entity attached to the ECS.
    *
    * @param fromObj Object blueprint for the Entity
    * @return Entity ID
@@ -45,11 +62,25 @@ export class ECS {
         this.addComponent(this.curID, cmp, fromObj[cmp])
       }
     }
+    this._setDirty(this.curID)
     return this.curID++
   }
 
   /**
-   * Adds a component to an Entity
+   * Removes all components from an entity, and therefore deregisters it from all systems.
+   * In the future may also mark the ID as reusable.
+   *
+   * @param {number} id
+   * @memberof ECS
+   */
+  destroyEntity(id: number) {
+    for(let c in this._dex) {
+      this.removeComponent(id, c)
+    }
+  }
+
+  /**
+   * Adds a component to an Entity.
    *
    * @param id Entity ID
    * @param type Name of component
@@ -63,6 +94,7 @@ export class ECS {
     if(cmp) {
       this.getComponents(type)[id] = cmp
     }
+    this._setDirty(id)
     return this
   }
 
@@ -77,12 +109,12 @@ export class ECS {
   removeComponent(id: number, type: string) {
     const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] &= ~(1 << i % 32)
-    // No need to delete since flag is set to 0 already
+    this._setDirty(id)
     return this
   }
 
   /**
-   * Gets a sparse array of all components of a specified type, indexed by entity ID
+   * Gets a sparse array of all components of a specified type, indexed by entity ID.
    *
    * @param type Component type
    * @return Sparse array of components
@@ -97,21 +129,63 @@ export class ECS {
   }
 
   /**
-   * Creates a bitmask that can be used in `match`. A component name prefixed with `!` will match if an entity does *not* have that component.
+   * Flags an entity as dirty, i.e. modified.
    *
-   * @param query Component types
-   * @return Bitmask
+   * @private
+   * @param {number} id
    * @memberof ECS
    */
-  createQuery(...types: string[]) {
+   private _setDirty(id: number) {
+    if(!this._dirtykeys[id]) {
+      this._dirty.push(id)
+      this._dirtykeys[id] = true
+    }
+  }
+
+  /**
+   * Processes any entities that have been flagged as dirty.
+   * Registers and deregisters modified entities from systems.
+   *
+   * @private
+   * @memberof ECS
+   */
+  private _clean() {
+    for(let id of this._dirty) {
+      for(let s of this._sys) {
+        const match = this._match(id, s.query)
+        if(match && !s.keys[id]) {
+          s.keys[id] = true
+          s.entities.push(id)
+        }
+        if(!match && s.keys[id]) { // Too slow?
+          delete s.keys[id]
+          delete s.entities[s.entities.indexOf(id)]
+        }
+      }
+    }
+    for(let s of this._sys) {
+      compact(s.entities)
+    }
+    this._dirty = []
+    this._dirtykeys = []
+  }
+
+  /**
+   * Creates a query.
+   * A component name prefixed with `!` will match if an entity does *not* have that component.
+   *
+   * @param types Component types
+   * @return Bitmask Query
+   * @memberof ECS
+   */
+  createQuery(...types: string[]): Query {
     const has = types.filter(c => c[0] !== "!")
     const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
-    const query = Array.from({length: 1 + +!!not.length}, () => new Uint32Array(Math.ceil(this._cmp.length / 32)))
-    has.forEach((c, i) => {query[0][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
-    if(not.length) {
-      not.forEach((c, i) => {query[1][Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
-    }
-    return query
+    const hasq = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    const notq = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    return [hasq, notq]
   }
 
   /**
@@ -122,20 +196,57 @@ export class ECS {
    * @return Boolean representing whether the Entity matches the query
    * @memberof ECS
    */
-  match(id: number, query: Uint32Array[]) { // TODO: Update only on change
+  private _match(id: number, query: Query) {
     for(let i = 0; i < query[0].length; i++) {
       if((this._ent[id][i] & query[0][i]) !== query[0][i]) {
         return false
       }
     }
-    if(query[1]) {
-      for(let i = 0; i < query[1].length; i++) {
-        if((this._ent[id][i] & query[1][i]) > 0) {
-          return false
-        }
+    for(let i = 0; i < query[1].length; i++) {
+      if((this._ent[id][i] & query[1][i]) > 0) {
+        return false
       }
     }
     return true
+  }
+  
+  /**
+   * Executes all systems.
+   *
+   * @memberof ECS
+   */
+  tick() {
+    for(let s of this._sys) {
+      s.execute()
+      this._clean()
+    }
+  }
+}
+
+/**
+ * A system which performs operations on entities that match a specified query.
+ *
+ * @export
+ * @class System
+ */
+export class System {
+  ecs: ECS
+  query: Query
+  entities: number[] = []
+  keys: boolean[] = [] // O(1) lookup table
+  execute: () => void
+
+  /**
+   * Creates an instance of System.
+   * @param ecs
+   * @param query
+   * @param execute
+   * @memberof System
+   */
+  constructor(query: Query, execute: () => void) {
+    this.ecs = ECS.prototype // To keep Typescript happy
+    this.query = query
+    this.execute = execute
   }
 }
 
@@ -151,4 +262,17 @@ export class ECSError extends Error {
     super(message)
     this.name = "ECSError"
   }
+}
+
+/**
+ * Removes all empty elements of an array in place.
+ *
+ * @param a Array to be compacted
+ */
+function compact(a: unknown[]) {
+  let j = 0
+  for(let i in a) {
+    a[j++] = i
+  }
+  a.length = j
 }
