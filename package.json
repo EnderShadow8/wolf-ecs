@@ -9,6 +9,7 @@
   ],
   "main": "main.js",
   "types": "main.d.ts",
+  "type": "module",
   "scripts": {
     "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist",
     "doc": "typedoc src"
