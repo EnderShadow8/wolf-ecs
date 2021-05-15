@@ -97,19 +97,7 @@ export class ECS {
   }
 
   /**
-   * Gets a component by entity ID and type
-   *
-   * @param id Entity ID
-   * @param type Component type
-   * @return Component object
-   * @memberof ECS
-   */
-  getComponent(id: number, type: string): unknown {
-    return this.getComponents(type)[id]
-  }
-
-  /**
-   * Creates a bitmask that can be used in `EntityHas` or `EntityHasNot`. A component name prefixed with `!` will match if an entity does *not* have that component.
+   * Creates a bitmask that can be used in `match`. A component name prefixed with `!` will match if an entity does *not* have that component.
    *
    * @param query Component types
    * @return Bitmask
@@ -134,7 +122,7 @@ export class ECS {
    * @return Boolean representing whether the Entity matches the query
    * @memberof ECS
    */
-  match(id: number, query: Uint32Array[]) {
+  match(id: number, query: Uint32Array[]) { // TODO: Update only on change
     for(let i = 0; i < query[0].length; i++) {
       if((this._ent[id][i] & query[0][i]) !== query[0][i]) {
         return false
