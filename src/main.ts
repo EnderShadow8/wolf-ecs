@@ -14,7 +14,7 @@ export class ECS {
   private _dirty: number[] = []
   private _dirtykeys: boolean[] = [] // O(1) lookup table
   private _ids: number[] = []
-  curID = 0
+  nextID = 0
 
   /**
    * Creates an instance of ECS.
@@ -56,14 +56,14 @@ export class ECS {
    * @memberof ECS
    */
   createEntity(fromObj?: {[type: string]: unknown}): number {
-    this._ent[this.curID] = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    this._ent[this.nextID] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     if(fromObj) {
       for(let cmp in fromObj) {
-        this.addComponent(this.curID, cmp, fromObj[cmp])
+        this.addComponent(this.nextID, cmp, fromObj[cmp])
       }
     }
-    this._setDirty(this.curID)
-    return this.curID++
+    this._setDirty(this.nextID)
+    return this.nextID++
   }
 
   /**
