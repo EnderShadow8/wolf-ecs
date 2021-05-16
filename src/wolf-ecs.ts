@@ -253,11 +253,10 @@ export class System {
 /**
  * Error relating to ECS.
  *
- * @export
  * @class ECSError
  * @extends {Error}
  */
-export class ECSError extends Error {
+class ECSError extends Error {
   constructor(message: string) {
     super(message)
     this.name = "ECSError"
