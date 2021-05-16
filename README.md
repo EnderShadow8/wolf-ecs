@@ -12,7 +12,7 @@ yarn:
 ```
 yarn add wolf-ecs
 ```
-Alternatively, download the latest release here on GitHub.
+Alternatively, download the [latest release](https://github.com/EnderShadow8/wolf-ecs/releases) here on GitHub.
 
 A CDN is on my todo list.
 
