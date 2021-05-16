@@ -1,4 +1,4 @@
-import {ECS, System} from "../dist/main.js"
+import {ECS, System} from "../dist/wolf-ecs.js"
 
 const n = 1e5
 
