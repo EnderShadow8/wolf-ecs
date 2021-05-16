@@ -1,4 +1,4 @@
-[wolf-ecs](../../README.md) / [Exports](../modules.md) / ECS
+[wolf-ecs](../README.md) / [Exports](../modules.md) / ECS
 
 # Class: ECS
 
@@ -50,6 +50,10 @@ Creates an instance of ECS.
 ### nextID
 
 • **nextID**: *number*= 0
+
+The counter for entity IDs. Incremented every time `createEntity` is called.
+
+**`memberof`** ECS
 
 ## Methods
 

@@ -14,10 +14,16 @@ export class ECS {
   private _dirty: number[] = []
   private _dirtykeys: boolean[] = [] // O(1) lookup table
   private _ids: number[] = []
+  /**
+   * The counter for entity IDs. Incremented every time `createEntity` is called.
+   *
+   * @memberof ECS
+   */
   nextID = 0
 
   /**
    * Creates an instance of ECS.
+   *
    * @param components Array of component type names
    * @memberof ECS
    */
@@ -35,7 +41,7 @@ export class ECS {
       }
     }
   }
-  
+
   /**
    * Adds a system to the ECS.
    * Systems execute in the order they are added.
@@ -209,7 +215,7 @@ export class ECS {
     }
     return true
   }
-  
+
   /**
    * Executes all systems.
    *
