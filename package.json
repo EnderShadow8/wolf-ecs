@@ -12,7 +12,7 @@
   "type": "module",
   "scripts": {
     "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist",
-    "doc": "npx typedoc --excludePrivate src; cd docs; rm README.md"
+    "doc": "npx typedoc --excludePrivate --disableSources src; cd docs; rm README.md"
   },
   "repository": {
     "type": "git",
