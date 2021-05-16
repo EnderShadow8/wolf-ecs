@@ -45,15 +45,11 @@ Creates an instance of ECS.
 
 **Returns:** [*ECS*](ecs.md)
 
-Defined in: [src/main.ts:17](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L17)
-
 ## Properties
 
 ### nextID
 
 • **nextID**: *number*= 0
-
-Defined in: [src/main.ts:17](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L17)
 
 ## Methods
 
@@ -77,8 +73,6 @@ Adds a component to an Entity.
 
 **Returns:** [*ECS*](ecs.md)
 
-Defined in: [src/main.ts:91](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L91)
-
 ___
 
 ### addSystem
@@ -97,8 +91,6 @@ Systems execute in the order they are added.
 | `sys` | [*System*](system.md) | System to be added |
 
 **Returns:** *void*
-
-Defined in: [src/main.ts:46](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L46)
 
 ___
 
@@ -119,8 +111,6 @@ Creates a new Entity attached to the ECS.
 **Returns:** *number*
 
 Entity ID
-
-Defined in: [src/main.ts:58](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L58)
 
 ___
 
@@ -143,8 +133,6 @@ A component name prefixed with `!` will match if an entity does *not* have that 
 
 Bitmask Query
 
-Defined in: [src/main.ts:181](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L181)
-
 ___
 
 ### destroyEntity
@@ -163,8 +151,6 @@ In the future may also mark the ID as reusable.
 | `id` | *number* |
 
 **Returns:** *void*
-
-Defined in: [src/main.ts:76](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L76)
 
 ___
 
@@ -185,8 +171,6 @@ Gets a sparse array of all components of a specified type, indexed by entity ID.
 **Returns:** *unknown*[]
 
 Sparse array of components
-
-Defined in: [src/main.ts:123](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L123)
 
 ___
 
@@ -209,8 +193,6 @@ Removes a Component from an Entity.
 
 **Returns:** [*ECS*](ecs.md)
 
-Defined in: [src/main.ts:109](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L109)
-
 ___
 
 ### tick
@@ -222,5 +204,3 @@ Executes all systems.
 **`memberof`** ECS
 
 **Returns:** *void*
-
-Defined in: [src/main.ts:218](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L218)

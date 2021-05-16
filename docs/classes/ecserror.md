@@ -40,8 +40,6 @@ Error relating to ECS.
 
 Overrides: Error.constructor
 
-Defined in: [src/main.ts:260](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L260)
-
 ## Properties
 
 ### message
@@ -49,8 +47,6 @@ Defined in: [src/main.ts:260](https://github.com/EnderShadow8/wolf-ecs/blob/9f9e
 • **message**: *string*
 
 Inherited from: Error.message
-
-Defined in: node_modules/typescript/lib/lib.es5.d.ts:974
 
 ___
 
@@ -60,8 +56,6 @@ ___
 
 Inherited from: Error.name
 
-Defined in: node_modules/typescript/lib/lib.es5.d.ts:973
-
 ___
 
 ### stack
@@ -69,5 +63,3 @@ ___
 • `Optional` **stack**: *string*
 
 Inherited from: Error.stack
-
-Defined in: node_modules/typescript/lib/lib.es5.d.ts:975
