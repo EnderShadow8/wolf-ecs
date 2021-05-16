@@ -2,14 +2,11 @@ import {ECS, System} from "../dist/wolf-ecs.js"
 
 const n = 1e5
 
-const ecs = new ECS(
-  "pos",
-  "vel",
-)
+const ecs = new ECS("pos", "vel")
 
 const MoveSystem = new System(ecs.createQuery("pos", "vel"), function() {
-  const pos = ecs.getComponents("pos")
-  const vel = ecs.getComponents("vel")
+  const pos = this.ecs.getComponents("pos")
+  const vel = this.ecs.getComponents("vel")
   for(let i of this.entities) {
     pos[i] += vel[i]
   }
