@@ -40,7 +40,7 @@ Error relating to ECS.
 
 Overrides: Error.constructor
 
-Defined in: [src/main.ts:260](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L260)
+Defined in: [src/main.ts:260](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L260)
 
 ## Properties
 

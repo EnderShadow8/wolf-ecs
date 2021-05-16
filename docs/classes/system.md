@@ -39,7 +39,7 @@ Creates an instance of System.
 
 **Returns:** [*System*](system.md)
 
-Defined in: [src/main.ts:237](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L237)
+Defined in: [src/main.ts:237](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L237)
 
 ## Properties
 
@@ -47,7 +47,7 @@ Defined in: [src/main.ts:237](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f
 
 • **ecs**: [*ECS*](ecs.md)
 
-Defined in: [src/main.ts:233](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L233)
+Defined in: [src/main.ts:233](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L233)
 
 ___
 
@@ -55,7 +55,7 @@ ___
 
 • **entities**: *number*[]= []
 
-Defined in: [src/main.ts:235](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L235)
+Defined in: [src/main.ts:235](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L235)
 
 ___
 
@@ -69,7 +69,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [src/main.ts:237](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L237)
+Defined in: [src/main.ts:237](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L237)
 
 ___
 
@@ -77,7 +77,7 @@ ___
 
 • **keys**: *boolean*[]= []
 
-Defined in: [src/main.ts:236](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L236)
+Defined in: [src/main.ts:236](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L236)
 
 ___
 
@@ -85,4 +85,4 @@ ___
 
 • **query**: Query
 
-Defined in: [src/main.ts:234](https://github.com/EnderShadow8/wolf-ecs/blob/1d5f42e/src/main.ts#L234)
+Defined in: [src/main.ts:234](https://github.com/EnderShadow8/wolf-ecs/blob/9f9ed57/src/main.ts#L234)
