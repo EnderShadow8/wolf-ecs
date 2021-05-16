@@ -1,4 +1,4 @@
-[wolf-ecs](../README.md) / [Exports](../modules.md) / ECS
+[wolf-ecs](../../README.md) / [Exports](../modules.md) / ECS
 
 # Class: ECS
 

@@ -1,4 +1,4 @@
-[wolf-ecs](README.md) / Exports
+[wolf-ecs](../README.md) / Exports
 
 # wolf-ecs
 
