@@ -13,16 +13,16 @@ class Primitive {
   }
 }
 
-function createSoA(def: ComponentDef): SoA {
+function createSoA(def: ComponentDef, len: number): SoA {
   if(def instanceof Primitive) {
-    return new def.arr(MAX_ENTITIES)
+    return new def.arr(len)
   }
   if(def instanceof Array) {
-    return new Array(def[1]).fill().map(() => createSoA(def[0]))
+    return new Array(def[1]).fill().map(() => createSoA(def[0], len))
   }
   const ret: SoA = {}
   for(let i in def) {
-    ret[i] = createSoA(def[i])
+    ret[i] = createSoA(def[i], len)
   }
   return ret
 }
@@ -75,8 +75,6 @@ class Query {
 }
 
 // ECS
-let MAX_ENTITIES = 1e4
-
 class ECS {
   protected _cmp: ComponentArray[] = []
   protected _ent: Uint32Array[] = []
@@ -86,16 +84,21 @@ class ECS {
   protected _init =  false
   protected cmpID = 0
   protected entID = 0
+  MAX_ENTITIES: number
+
+  constructor(max: number = 1e4) {
+    this.MAX_ENTITIES = max
+  }
 
   defineComponent(def: ComponentDef): ComponentArray {
     if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
-    const cmp = Object.assign(createSoA(def), {[dex]: this.cmpID++})
+    const cmp = Object.assign(createSoA(def, this.MAX_ENTITIES), {[dex]: this.cmpID++})
     this._cmp.push(cmp)
     return cmp
   }
-  
+
   defineSystem(func: () => void) {
     return new System(this, func)
   }
