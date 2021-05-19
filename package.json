@@ -1,7 +1,7 @@
 {
   "name": "wolf-ecs",
   "version": "0.5.1",
-  "description": "An entity component system framework for JavaScript and TypeScript intended for learning purposes",
+  "description": "An entity component system framework for JavaScript and TypeScript",
   "keywords": [
     "ecs",
     "entity component system",
@@ -11,8 +11,9 @@
   "types": "main.d.ts",
   "type": "module",
   "scripts": {
-    "pub": "tsc; cp package.json README.md LICENSE dist; cd dist; npm publish; cd ../; rm -r dist",
-    "doc": "npx typedoc --excludePrivate --disableSources src; cd docs; rm README.md"
+    "pub": "npm run build; cp package.json README.md dist; cd dist; npm publish; cd ../",
+    "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -c -m --no-annotations",
+    "build": "tsc; npm run min"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,6 @@
   "homepage": "https://github.com/EnderShadow8/wolf-ecs",
   "devDependencies": {
     "typescript": "^4.2.4",
-    "typedoc": "^0.20.36",
-    "typedoc-plugin-markdown": "^3.8.1"
+    "uglify-js": "^3.13.6"
   }
 }
