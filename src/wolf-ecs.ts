@@ -91,7 +91,7 @@ class ECS {
     this.MAX_ENTITIES = max
   }
 
-  defineComponent(def: ComponentDef): ComponentArray {
+  defineComponent(def: ComponentDef = {}): ComponentArray {
     if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
