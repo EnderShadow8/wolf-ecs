@@ -67,7 +67,7 @@ function not(cmp: ComponentArray) {
 class Query {
   mask: QueryMask
   entities: number[] = []
-  keys: boolean[] = [] // O(1) lookup table
+  keys: number[] = []
 
   constructor(mask: QueryMask) {
     this.mask = mask
@@ -107,15 +107,15 @@ class ECS {
   createEntity(): number {
     if(this._rm.length) {
       const id = this._rm.pop()!
-      this._create(id)
+      this._crEnt(id)
       return id
     } else {
-      this._create(this.entID)
+      this._crEnt(this.entID)
       return this.entID++
     }
   }
   
-  protected _create(id: number) {
+  protected _crEnt(id: number) {
     this._ent[id] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     this._setDirty(id)
   }
@@ -160,23 +160,24 @@ class ECS {
   }
 
   _clean() {
-    const toCompact: number[][] = []
     for(let id of this._dirty) {
       for(let q of this._queries) {
         const match = this.match(id, q.mask)
         if(match && !q.keys[id]) {
-          q.keys[id] = true
+          q.keys[id] = q.entities.length
           q.entities.push(id)
         }
-        if(!match && q.keys[id]) { // Too slow?
+        if(!match && q.entities[q.keys[id]] === id) {
+          if(q.entities.length > 1) {
+            const last = q.entities.pop()!
+            q.entities[q.keys[id]] = last
+            q.keys[last] = q.keys[id]
+          } else {
+            q.entities = []
+          }
           delete q.keys[id]
-          delete q.entities[q.entities.indexOf(id)]
-          toCompact.push(q.entities)
         }
       }
-    }
-    for(let i = 0, l = toCompact.length; i < l; i++) {
-      compact(toCompact[i])
     }
     this._dirty = []
     this._dirtykeys = []
@@ -208,10 +209,4 @@ const types = {
   Float64: new Primitive(Float64Array),
 }
 
-export {ECS, types}
-
-function compact(a: unknown[]) {
-  let j = 0
-  a.forEach(v => {a[j] = v; j++})
-  a.length = j
-}
+export {ECS, types, not}
