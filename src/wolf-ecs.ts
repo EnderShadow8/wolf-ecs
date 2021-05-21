@@ -198,15 +198,14 @@ class ECS {
   }
 }
 
-const types = {
-  Int8: new Primitive(Int8Array),
-  Uint8: new Primitive(Uint8Array),
-  Int16: new Primitive(Int16Array),
-  Uint16: new Primitive(Uint16Array),
-  Int32: new Primitive(Int32Array),
-  Uint32: new Primitive(Uint32Array),
-  Float32: new Primitive(Float32Array),
-  Float64: new Primitive(Float64Array),
-}
+const types: {[type: string]: Primitive} = {}
+types.int8 = types.i8 = new Primitive(Int8Array)
+types.uint8 = types.u8 = new Primitive(Uint8Array)
+types.int16 = types.i16 = new Primitive(Int16Array)
+types.uint16 = types.u16 = new Primitive(Uint16Array)
+types.int32 = types.i32 = new Primitive(Int32Array)
+types.uint32 = types.u32 = new Primitive(Uint32Array)
+types.float32 = types.f32 = types.float = new Primitive(Float32Array)
+types.float64 = types.f64 = types.double = new Primitive(Float64Array)
 
 export {ECS, types, not}
