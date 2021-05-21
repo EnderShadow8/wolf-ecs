@@ -1,7 +1,7 @@
 // Components
 const dex = Symbol()
-type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
+type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
+type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 type SoA = TypedArray | SoA[] | {[key: string]: SoA}
 type ComponentDef = Primitive | {[key: string]: ComponentDef}
 type ComponentArray = SoA & {[dex]: number}
@@ -203,9 +203,11 @@ types.int8 = types.i8 = new Primitive(Int8Array)
 types.uint8 = types.u8 = new Primitive(Uint8Array)
 types.int16 = types.i16 = new Primitive(Int16Array)
 types.uint16 = types.u16 = new Primitive(Uint16Array)
-types.int32 = types.i32 = new Primitive(Int32Array)
-types.uint32 = types.u32 = new Primitive(Uint32Array)
+types.int32 = types.i32 = types.int = new Primitive(Int32Array)
+types.uint32 = types.u32 = types.uint = new Primitive(Uint32Array)
 types.float32 = types.f32 = types.float = new Primitive(Float32Array)
 types.float64 = types.f64 = types.double = new Primitive(Float64Array)
+types.bigint64 = types.int64 = types.i64 = types.long = new Primitive(BigInt64Array)
+types.biguint64 = types.uint64 = types.u64 = types.ulong = new Primitive(BigUint64Array)
 
 export {ECS, types, not}
