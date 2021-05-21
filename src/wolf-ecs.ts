@@ -81,6 +81,7 @@ class ECS {
   protected _queries: Query[] = []
   protected _dirty: number[] = []
   protected _dirtykeys: boolean[] = []
+  protected _rm: number[] = []
   protected _init =  false
   protected cmpID = 0
   protected entID = 0
@@ -104,15 +105,25 @@ class ECS {
   }
 
   createEntity(): number {
-    this._ent[this.entID] = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    this._setDirty(this.entID)
-    return this.entID++
+    if(this._rm.length) {
+      const id = this._rm.pop()!
+      this._create(id)
+      return id
+    } else {
+      this._create(this.entID)
+      return this.entID++
+    }
+  }
+  
+  protected _create(id: number) {
+    this._ent[id] = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    this._setDirty(id)
   }
 
   destroyEntity(id: number) {
-    this._ent[id].fill(0)
+    delete this._ent[id]
     this._setDirty(id)
-    // Recycle entity ID?
+    this._rm.push(id)
   }
 
   addComponent(id: number, type: ComponentArray) {
