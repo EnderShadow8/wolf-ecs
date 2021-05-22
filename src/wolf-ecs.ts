@@ -193,10 +193,10 @@ class ECS {
 }
 
 const types: {[type: string]: Primitive} = {}
-types.int8 = types.i8 = new Primitive(Int8Array)
-types.uint8 = types.u8 = new Primitive(Uint8Array)
-types.int16 = types.i16 = new Primitive(Int16Array)
-types.uint16 = types.u16 = new Primitive(Uint16Array)
+types.int8 = types.i8 = types.char = new Primitive(Int8Array)
+types.uint8 = types.u8 = types.uchar = new Primitive(Uint8Array)
+types.int16 = types.i16 = types.short = new Primitive(Int16Array)
+types.uint16 = types.u16 = types.ushort = new Primitive(Uint16Array)
 types.int32 = types.i32 = types.int = new Primitive(Int32Array)
 types.uint32 = types.u32 = types.uint = new Primitive(Uint32Array)
 types.float32 = types.f32 = types.float = new Primitive(Float32Array)
