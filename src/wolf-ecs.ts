@@ -162,7 +162,7 @@ class ECS {
   _clean() {
     for(let id of this._dirty) {
       for(let q of this._queries) {
-        const match = this.match(id, q.mask)
+        const match = this._ent[id] && this.match(id, q.mask)
         if(match && !q.keys[id]) {
           q.keys[id] = q.entities.length
           q.entities.push(id)
