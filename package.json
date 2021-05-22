@@ -13,7 +13,7 @@
   "scripts": {
     "pub": "npm run build; cp package.json README.md dist; cd dist; npm publish; cd ../",
     "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -c -m --no-annotations",
-    "build": "tsc; npm run min"
+    "build": "rm -rf dist; tsc; npm run min"
   },
   "repository": {
     "type": "git",
