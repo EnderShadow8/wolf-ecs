@@ -17,10 +17,10 @@ A CDN is on my todo list.
 ## Features
 - Written in Typescript for full, up to date type support.
 - NOT operator for queries.
-- Tiny size - 3kB minified uncompressed.
+- Tiny size - 3kB minified uncompressed, contained in a single file.
 - Statically typed components for speed.
 - Incrementally updated queries and bitmasks for enhanced performance.
-- Did I mention it's [*fast?*](https://github.com/EnderShadow8/ecs-benchmark)
+- Did I mention it's *[fast](https://github.com/EnderShadow8/ecs-benchmark)?*
 
 ## Usage
 Find detailed documentation [here](docs/docs.md).
