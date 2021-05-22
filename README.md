@@ -20,56 +20,13 @@ A CDN is on my todo list.
 
 - Written in Typescript for full, up to date type support.
 - NOT operator for queries.
-- Components can be any type - no extending, implementing or any of that nonsense.
+- Statically typed components for speed.
 - Incrementally updated queries and bitmasks for enhanced performance.
-- Did I mention it's *[fast](benchmarks/ecs.js)?*
+- Did I mention it's *fast?*
 
 ## Usage
 
-Find detailed documentation [here](docs/modules.md).
-
-```js
-import {ECS, System} from "./wolf-ecs"
-
-const ecs = new ECS("pos", "vel") // Position and velocity components
-
-// This is a system which updates entities' positions based on their velocity.
-const MoveSystem = new System(
-  // This is a query that specifies which entities are eligible for this system.
-  ecs.createQuery("pos", "vel"),
-
-  // This is the function that is called when "MoveSystem" is executed.
-  function() {
-    // Get relevant components
-    const pos = this.ecs.getComponents("pos")
-    const vel = this.ecs.getComponents("vel")
-
-    // Do operations on those components
-    for(let i of this.entities) {
-      pos[i].x += vel[i].x
-      pos[i].y += vel[i].y
-    }
-  }
-)
-
-// Add system to ECS
-ecs.addSystem(ExampleSystem)
-
-const id = ecs.createEntity()
-ecs.addComponent(
-  id,             // Target entity ID
-  "pos",          // Component type name
-  {x: 0, y: 0}    // Component to be added
-)
-ecs.addComponent(id, "pos", {x: 1, y: 1})
-
-function main() {
-  // And the ECS will handle the rest!
-  ecs.tick()
-  requestAnimationFrame(main)
-}
-main()
-```
+TODO: docs
 
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
