@@ -32,12 +32,6 @@ class System {
   ecs: ECS
   func: () => void
 
-  /**
-   * Creates an instance of System.
-   * @param ecs
-   * @param func
-   * @memberof System
-   */
   constructor(ecs: ECS, func: () => void) {
     this.ecs = ecs
     this.func = func
