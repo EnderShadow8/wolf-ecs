@@ -25,8 +25,7 @@ A CDN is on my todo list.
 - Did I mention it's *fast?*
 
 ## Usage
-
-TODO: docs
+Find detailed documentation [here](docs/docs.md).
 
 ```js
 import { ECS, types } from "wolf-ecs"
