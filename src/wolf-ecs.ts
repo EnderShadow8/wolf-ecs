@@ -1,7 +1,8 @@
-// Components
-const dex = Symbol()
 type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
+
+// Components
+const dex = Symbol()
 type SoA = TypedArray | SoA[] | {[key: string]: SoA}
 type ComponentDef = Primitive | {[key: string]: ComponentDef}
 type ComponentArray = SoA & {[dex]: number}
@@ -68,6 +69,20 @@ class Query {
   }
 }
 
+function match(target: Uint32Array, mask: QueryMask) {
+  for(let i = 0; i < mask[0].length; i++) {
+    if((target[i] & mask[0][i]) !== mask[0][i]) {
+      return false
+    }
+  }
+  for(let i = 0; i < mask[1].length; i++) {
+    if((target[i] & mask[1][i]) > 0) {
+      return false
+    }
+  }
+  return true
+}
+
 // ECS
 class ECS {
   protected _cmp: ComponentArray[] = []
@@ -76,7 +91,7 @@ class ECS {
   protected _dirty: number[] = []
   protected _dirtykeys: boolean[] = []
   protected _rm: number[] = []
-  protected _init =  false
+  protected _init = false
   protected cmpID = 0
   protected entID = 0
   MAX_ENTITIES: number
@@ -94,8 +109,19 @@ class ECS {
     return cmp
   }
 
-  defineSystem(func: () => void) {
-    return new System(this, func)
+  createQuery(...types: ComponentArray[]): Query {
+    if(!types.length) {
+      throw new Error("Query cannot be empty.")
+    }
+    const has = types.filter(c => !(c instanceof Not))
+    const not = types.filter(c => c instanceof Not)
+    const hasq = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    const notq = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
+    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
+    const query = new Query([hasq, notq])
+    this._queries.push(query)
+    return query
   }
 
   createEntity(): number {
@@ -108,7 +134,7 @@ class ECS {
       return this.entID++
     }
   }
-  
+
   protected _crEnt(id: number) {
     this._ent[id] = new Uint32Array(Math.ceil(this._cmp.length / 32))
     this._setDirty(id)
@@ -134,18 +160,6 @@ class ECS {
     return this
   }
 
-  createQuery(...types: ComponentArray[]): Query {
-    const has = types.filter(c => !(c instanceof Not))
-    const not = types.filter(c => c instanceof Not)
-    const hasq = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    const notq = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
-    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
-    const query = new Query([hasq, notq])
-    this._queries.push(query)
-    return query
-  }
-
   protected _setDirty(id: number) {
     if(!this._dirtykeys[id]) {
       this._dirty.push(id)
@@ -156,12 +170,12 @@ class ECS {
   _clean() {
     for(let id of this._dirty) {
       for(let q of this._queries) {
-        const match = this._ent[id] && this.match(id, q.mask)
-        if(match && !q.keys[id]) {
+        const m = this._ent[id] && match(this._ent[id], q.mask)
+        if(m && !q.keys[id]) {
           q.keys[id] = q.entities.length
           q.entities.push(id)
         }
-        if(!match && q.entities[q.keys[id]] === id) {
+        if(!m && q.entities[q.keys[id]] === id) {
           if(q.entities.length > 1) {
             const last = q.entities.pop()!
             q.entities[q.keys[id]] = last
@@ -175,20 +189,6 @@ class ECS {
     }
     this._dirty = []
     this._dirtykeys = []
-  }
-
-  match(id: number, mask: QueryMask) {
-    for(let i = 0; i < mask[0].length; i++) {
-      if((this._ent[id][i] & mask[0][i]) !== mask[0][i]) {
-        return false
-      }
-    }
-    for(let i = 0; i < mask[1].length; i++) {
-      if((this._ent[id][i] & mask[1][i]) > 0) {
-        return false
-      }
-    }
-    return true
   }
 }
 
