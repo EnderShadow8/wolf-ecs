@@ -7,8 +7,8 @@
     "entity component system",
     "gamedev"
   ],
-  "main": "main.js",
-  "types": "main.d.ts",
+  "main": "wolf-ecs.js",
+  "types": "wolf-ecs.d.ts",
   "type": "module",
   "scripts": {
     "pub": "npm run build; cp package.json README.md dist; cd dist; npm publish; cd ../",
