@@ -28,6 +28,53 @@ A CDN is on my todo list.
 
 TODO: docs
 
+```js
+import { ECS, types } from "wolf-ecs"
+
+// Create ECS object
+const ecs = new ECS()
+
+// Define the shape of a component
+const vector = {x: types.i32, y: types.i32}
+
+// Define a component using a component definition
+const position = ecs.defineComponent(vector)
+const velocity = ecs.defineComponent(vector)
+
+// Create a query which requires certain components
+const moveQuery = ecs.createQuery(position, velocity)
+
+// Define a system
+const moveSystem = ecs.defineSystem(function() {
+  // Iterate over all entities that match a query
+  for(let entity of moveQuery.entities) {
+    position.x[entity] += velocity.x[entity]
+    position.y[entity] += velocity.y[entity]
+  }
+})
+
+// Create an entity
+const entity = ecs.createEntity()
+
+// Add components to entity
+ecs.addComponent(entity, position)
+ecs.addComponent(entity, velocity)
+
+// Values must be set otherwise undefined behaviour will occur
+position.x[entity] = 1
+position.y[entity] = 1
+velocity.x[entity] = 1
+velocity.y[entity] = 1
+
+// Main loop
+function main() {
+  // Execute a system
+  moveSystem.execute()
+  requestAnimationFrame(main)
+}
+main()
+```
+
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
 
