@@ -1,9 +1,7 @@
 # WolfECS
-
 WolfECS is a powerful, lightweight ECS framework written in Typescript.
 
 ## Installation
-
 npm:
 ```
 npm i wolf-ecs
@@ -17,12 +15,12 @@ Alternatively, download the [latest release](https://github.com/EnderShadow8/wol
 A CDN is on my todo list.
 
 ## Features
-
 - Written in Typescript for full, up to date type support.
 - NOT operator for queries.
+- Tiny size - 3kB minified uncompressed.
 - Statically typed components for speed.
 - Incrementally updated queries and bitmasks for enhanced performance.
-- Did I mention it's *fast?*
+- Did I mention it's [*fast?*](https://github.com/EnderShadow8/ecs-benchmark)
 
 ## Usage
 Find detailed documentation [here](docs/docs.md).
@@ -73,6 +71,13 @@ function main() {
 }
 main()
 ```
+
+## More on ECS
+> Entity–component–system (ECS) is an architectural pattern that is mostly used in game development. ECS follows the composition over inheritance principle that allows greater flexibility in defining entities where every object in a game's scene is an entity (e.g. enemies, bullets, vehicles, etc.). Every entity consists of one or more components which contains data or state.
+
+*- [Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)*
+
+[This article](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d) explains ECS very well.
 
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
