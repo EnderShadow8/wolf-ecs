@@ -124,6 +124,10 @@ class ECS {
     return query
   }
 
+  defineSystem(func: () => void) {
+    return new System(this, func)
+  }
+
   createEntity(): number {
     if(this._rm.length) {
       const id = this._rm.pop()!
