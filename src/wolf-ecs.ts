@@ -1,9 +1,9 @@
-type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
+type ArrayOrTypedArrayConstructor = ArrayConstructor | Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
+type ArrayOrTypedArray = any[] | Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 
 // Components
 const dex = Symbol()
-type SoA = TypedArray | SoA[] | {[key: string]: SoA}
+type SoA = ArrayOrTypedArray | SoA[] | {[key: string]: SoA}
 type ComponentDef = Type | {[key: string]: ComponentDef}
 type ComponentArray = SoA & {[dex]: number}
 
@@ -190,8 +190,8 @@ class ECS {
 }
 
 class Type {
-  arr: TypedArrayConstructor
-  constructor(arr: TypedArrayConstructor) {
+  arr: ArrayOrTypedArrayConstructor
+  constructor(arr: ArrayOrTypedArrayConstructor) {
     this.arr = arr
   }
 }
@@ -207,5 +207,6 @@ types.float32 = types.f32 = types.float = new Type(Float32Array)
 types.float64 = types.f64 = types.double = new Type(Float64Array)
 types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
 types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
+types.any = types.a = new Type(Array)
 
 export {ECS, types, not}

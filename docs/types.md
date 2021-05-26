@@ -15,3 +15,4 @@ The `Type`s exposed to the user are in the `types` export.
 | `float64` || `f64` | `double` | 64-bit double precision floating point number. |
 | `int64` | `bigint64` | `i64` | `long` | 64-bit signed integer. |
 | `uint64`| `biguint64`  | `u64` | `ulong` | 64-bit unsigned integer. |
+| `any`|| `a` || Any type. Try to avoid this since it is slow. |
