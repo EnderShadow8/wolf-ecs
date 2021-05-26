@@ -2,6 +2,7 @@
 WolfECS is a powerful, lightweight ECS framework written in Typescript.
 
 ## Installation
+### Installing locally
 npm:
 ```
 npm i wolf-ecs
@@ -12,7 +13,11 @@ yarn add wolf-ecs
 ```
 Alternatively, download the [latest release](https://github.com/EnderShadow8/wolf-ecs/releases) here on GitHub.
 
-A CDN is on my todo list.
+### Using a CDN
+JSDelivr:
+```js
+import { ECS, types } from "https://esm.run/wolf-ecs/wolf-ecs.js"
+```
 
 ## Features
 - Written in Typescript for full, up to date type support.
