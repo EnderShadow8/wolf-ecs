@@ -11,7 +11,7 @@
   "types": "wolf-ecs.d.ts",
   "type": "module",
   "scripts": {
-    "pub": "npm run build; cp package.json README.md dist; cd dist; npm publish; cd ../",
+    "pub": "npm run build; gh release create dist/wolf-ecs.js dist/wolf-ecs.min.js dist/wolf-ecs.d.ts; cp package.json README.md dist; cd dist; npm publish; cd ../",
     "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -c -m --no-annotations",
     "build": "rm -rf dist; tsc; npm run min"
   },
