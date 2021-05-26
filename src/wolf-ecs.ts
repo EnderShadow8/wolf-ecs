@@ -4,18 +4,11 @@ type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array
 // Components
 const dex = Symbol()
 type SoA = TypedArray | SoA[] | {[key: string]: SoA}
-type ComponentDef = Primitive | {[key: string]: ComponentDef}
+type ComponentDef = Type | {[key: string]: ComponentDef}
 type ComponentArray = SoA & {[dex]: number}
 
-class Primitive {
-  arr: TypedArrayConstructor
-  constructor(arr: TypedArrayConstructor) {
-    this.arr = arr
-  }
-}
-
 function createSoA(def: ComponentDef, len: number): SoA {
-  if(def instanceof Primitive) {
+  if(def instanceof Type) {
     return new def.arr(len)
   }
   if(def instanceof Array) {
@@ -196,16 +189,23 @@ class ECS {
   }
 }
 
-const types: {[type: string]: Primitive} = {}
-types.int8 = types.i8 = types.char = new Primitive(Int8Array)
-types.uint8 = types.u8 = types.uchar = new Primitive(Uint8Array)
-types.int16 = types.i16 = types.short = new Primitive(Int16Array)
-types.uint16 = types.u16 = types.ushort = new Primitive(Uint16Array)
-types.int32 = types.i32 = types.int = new Primitive(Int32Array)
-types.uint32 = types.u32 = types.uint = new Primitive(Uint32Array)
-types.float32 = types.f32 = types.float = new Primitive(Float32Array)
-types.float64 = types.f64 = types.double = new Primitive(Float64Array)
-types.bigint64 = types.int64 = types.i64 = types.long = new Primitive(BigInt64Array)
-types.biguint64 = types.uint64 = types.u64 = types.ulong = new Primitive(BigUint64Array)
+class Type {
+  arr: TypedArrayConstructor
+  constructor(arr: TypedArrayConstructor) {
+    this.arr = arr
+  }
+}
+
+const types: {[type: string]: Type} = {}
+types.int8 = types.i8 = types.char = new Type(Int8Array)
+types.uint8 = types.u8 = types.uchar = new Type(Uint8Array)
+types.int16 = types.i16 = types.short = new Type(Int16Array)
+types.uint16 = types.u16 = types.ushort = new Type(Uint16Array)
+types.int32 = types.i32 = types.int = new Type(Int32Array)
+types.uint32 = types.u32 = types.uint = new Type(Uint32Array)
+types.float32 = types.f32 = types.float = new Type(Float32Array)
+types.float64 = types.f64 = types.double = new Type(Float64Array)
+types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
+types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
 
 export {ECS, types, not}

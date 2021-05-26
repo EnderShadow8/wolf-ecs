@@ -1,7 +1,7 @@
-# Primitive
+# Type
 This class is only used for declaring component types.
 
-The `Primitive`s exposed to the user are in the `types` export.
+The `Type`s exposed to the user are in the `types` export.
 
 | Aliases |||| Description |
 | - | - | - | - | - |
