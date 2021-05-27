@@ -41,14 +41,17 @@ const ecs = new ECS()
 const vector = {x: types.i32, y: types.i32}
 
 // Define a component using a component definition
-const position = ecs.defineComponent(vector)
-const velocity = ecs.defineComponent(vector)
+ecs.defineComponent("position", vector)
+ecs.defineComponent("velocity", vector)
 
 // Create a query which requires certain components
-const moveQuery = ecs.createQuery(position, velocity)
+const moveQuery = ecs.createQuery("position", "velocity")
 
 // Define a system
 const moveSystem = ecs.defineSystem(function() {
+  // Get relevant components
+  const position = ecs.components.position
+  const velocity = ecs.components.veslocity
   // Iterate over all entities that match a query
   for(let entity of moveQuery.entities) {
     position.x[entity] += velocity.x[entity]
@@ -60,14 +63,14 @@ const moveSystem = ecs.defineSystem(function() {
 const entity = ecs.createEntity()
 
 // Add components to entity
-ecs.addComponent(entity, position)
-ecs.addComponent(entity, velocity)
+ecs.addComponent(entity, "position")
+ecs.addComponent(entity, "velocity")
 
 // Values must be set otherwise undefined behaviour will occur
-position.x[entity] = 1
-position.y[entity] = 1
-velocity.x[entity] = 1
-velocity.y[entity] = 1
+ecs.components.position.x[entity] = 1
+ecs.components.position.y[entity] = 1
+ecs.components.velocity.x[entity] = 1
+ecs.components.velocity.y[entity] = 1
 
 // Main loop
 function main() {

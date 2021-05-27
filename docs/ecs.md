@@ -15,7 +15,9 @@ const ecs = new ECS()
 ___
 
 ## `defineComponent`
-Defines a component type and returns a reference to that component's pool.
+Defines a component type. A component's pool can be accessed via `ecs.components.componentName`.
+
+This function is chainable.
 
 ### Parameters
 | Name | Type | Description |
@@ -23,28 +25,28 @@ Defines a component type and returns a reference to that component's pool.
 | `def` | [`ComponentDef`](component.md#ComponentDef) | Component shape definition. |
 
 ### Returns
-[`ComponentArray`](component.md#ComponentArray)
+`this`
 
 ### Example usage
 ```js
-const foo = ecs.defineComponent({foo: types.i32, bar: types.f32})
+ecs.defineComponent("foo", {foo: types.i32, bar: types.f32})
 ```
 ___
 
 ## `createQuery`
-Creates and returns a [`Query`](query.md) object. To add a NOT filter use the `not` function.
+Creates and returns a [`Query`](query.md) object. To add a NOT filter, prefix the component's name with `!`.
 
 ### Parameters
 | Name | Type | Description |
 | - | - | - |
-| `...types` | `ComponentArray[]` | Component types to be included in query. |
+| `...types` | `string[]` | Component types to be included in query. |
 
 ### Returns
 [`Query`](query.md)
 
 ### Example usage
 ```js
-const query = ecs.createQuery(foo, not(bar))
+const query = ecs.createQuery("foo", "!bar")
 ```
 ___
 
@@ -112,14 +114,14 @@ This method is chainable.
 | Name | Type | Description |
 | - | - | - |
 | `id` | `number` | Entity ID. |
-| `type` | `ComponentArray` | Component type. |
+| `type` | `string` | Component type name. |
 
 ### Returns
 `this`
 
 ### Example usage
 ```js
-ecs.addComponent(0, foo).addComponent(0, bar)
+ecs.addComponent(0, "foo").addComponent(0, "bar")
 ```
 ___
 
@@ -132,12 +134,12 @@ This function is chainable.
 | Name | Type | Description |
 | - | - | - |
 | `id` | `number` | Entity ID. |
-| `type` | [`ComponentArray`](component.md#ComponentArray) | Component type. |
+| `type` | `string` | Component type name. |
 
 ### Returns
 `this`
 
 ### Example usage:
 ```js
-ecs.addComponent(0, foo).addComponent(0, bar)
-ecs.removeComponent(0, foo)
+ecs.addComponent(0, "foo").addComponent(0, "bar")
+ecs.removeComponent(0, "foo")

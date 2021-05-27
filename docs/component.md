@@ -7,7 +7,7 @@ There is no Component class. Rather, these are some additional classes and Types
 This type is used to define a component using `ECS.defineComponent`.
 
 ### Type
-`{`[`Primitive`](primitive.md)` | {[key: string]: ComponentDef}}`
+`{`[`Type`](types.md)` | {[key: string]: ComponentDef}}`
 
 ### Example usage
 ```js
@@ -26,7 +26,7 @@ const component = ecs.defineComponent(def)
 This type is used to store and lookup components.
 
 ### Type
-`{TypedArray | {[key: string]: ComponentArray}}`
+`{Array | TypedArray | {[key: string]: ComponentArray}}`
 
 ### Example usage
 ```js

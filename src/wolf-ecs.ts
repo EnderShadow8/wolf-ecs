@@ -1,16 +1,13 @@
-type ArrayOrTypedArrayConstructor = ArrayConstructor | Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
-type ArrayOrTypedArray = unknown[] | Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
+type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
+type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 
 // Components
 type ComponentDef = Type | {[key: string]: ComponentDef}
-type ComponentArray = ArrayOrTypedArray | ComponentArray[] | {[key: string]: ComponentArray}
+type ComponentArray = TypedArray | unknown[] | {[key: string]: ComponentArray}
 
 function createComponentArray(def: ComponentDef, len: number): ComponentArray {
   if(def instanceof Type) {
     return new def.arr(len)
-  }
-  if(def instanceof Array) {
-    return new Array(def[1]).fill().map(() => createComponentArray(def[0], len))
   }
   const ret: ComponentArray = {}
   for(let i in def) {
@@ -81,7 +78,7 @@ class ECS {
     this.MAX_ENTITIES = max
   }
 
-  defineComponent(name: string, def: ComponentDef = {}): ComponentArray {
+  defineComponent(name: string, def: ComponentDef = {}) {
     if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
@@ -89,7 +86,7 @@ class ECS {
     this.components[name] = cmp
     this._dex[name] = this.cmpID++
     this._ncmp++
-    return cmp
+    return this
   }
 
   protected _crMask() {
@@ -184,8 +181,8 @@ class ECS {
 }
 
 class Type {
-  arr: ArrayOrTypedArrayConstructor
-  constructor(arr: ArrayOrTypedArrayConstructor) {
+  arr: TypedArrayConstructor | ArrayConstructor
+  constructor(arr: TypedArrayConstructor | ArrayConstructor) {
     this.arr = arr
   }
 }

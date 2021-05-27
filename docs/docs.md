@@ -3,7 +3,7 @@
 ## Table of contents
 
 - [ECS](ecs.md)
-- [Primitive](primitive.md)
+- [Types](types.md)
 - [Component](component.md)
 - [Query](query.md)
 - [System](system.md)
