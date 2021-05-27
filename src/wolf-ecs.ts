@@ -1,22 +1,20 @@
 type ArrayOrTypedArrayConstructor = ArrayConstructor | Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
-type ArrayOrTypedArray = any[] | Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
+type ArrayOrTypedArray = unknown[] | Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 
 // Components
-const dex = Symbol()
-type SoA = ArrayOrTypedArray | SoA[] | {[key: string]: SoA}
 type ComponentDef = Type | {[key: string]: ComponentDef}
-type ComponentArray = SoA & {[dex]: number}
+type ComponentArray = ArrayOrTypedArray | ComponentArray[] | {[key: string]: ComponentArray}
 
-function createSoA(def: ComponentDef, len: number): SoA {
+function createComponentArray(def: ComponentDef, len: number): ComponentArray {
   if(def instanceof Type) {
     return new def.arr(len)
   }
   if(def instanceof Array) {
-    return new Array(def[1]).fill().map(() => createSoA(def[0], len))
+    return new Array(def[1]).fill().map(() => createComponentArray(def[0], len))
   }
-  const ret: SoA = {}
+  const ret: ComponentArray = {}
   for(let i in def) {
-    ret[i] = createSoA(def[i], len)
+    ret[i] = createComponentArray(def[i], len)
   }
   return ret
 }
@@ -39,18 +37,6 @@ class System {
 
 // Queries
 type QueryMask = [Uint32Array, Uint32Array]
-
-class Not {
-  cmp: ComponentArray
-
-  constructor(cmp: ComponentArray) {
-    this.cmp = cmp
-  }
-}
-
-function not(cmp: ComponentArray) {
-  return new Not(cmp)
-}
 
 class Query {
   mask: QueryMask
@@ -78,40 +64,48 @@ function match(target: Uint32Array, mask: QueryMask) {
 
 // ECS
 class ECS {
-  protected _cmp: ComponentArray[] = []
+  protected _dex: {[cmp: string]: number} = {}
   protected _ent: Uint32Array[] = []
   protected _queries: Query[] = []
   protected _dirty: number[] = []
   protected _dirtykeys: boolean[] = []
   protected _rm: number[] = []
+  protected _ncmp = 0
   protected _init = false
   protected cmpID = 0
   protected entID = 0
+  components: {[name: string]: ComponentArray} = {}
   MAX_ENTITIES: number
 
   constructor(max: number = 1e4) {
     this.MAX_ENTITIES = max
   }
 
-  defineComponent(def: ComponentDef = {}): ComponentArray {
+  defineComponent(name: string, def: ComponentDef = {}): ComponentArray {
     if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
-    const cmp = Object.assign(createSoA(def, this.MAX_ENTITIES), {[dex]: this.cmpID++})
-    this._cmp.push(cmp)
+    const cmp = createComponentArray(def, this.MAX_ENTITIES)
+    this.components[name] = cmp
+    this._dex[name] = this.cmpID++
+    this._ncmp++
     return cmp
   }
 
-  createQuery(...types: ComponentArray[]): Query {
+  protected _crMask() {
+    return new Uint32Array(Math.ceil(this._ncmp / 32))
+  }
+  
+  createQuery(...types: string[]): Query {
     if(!types.length) {
       throw new Error("Query cannot be empty.")
     }
-    const has = types.filter(c => !(c instanceof Not))
-    const not = types.filter(c => c instanceof Not)
-    const hasq = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    const notq = new Uint32Array(Math.ceil(this._cmp.length / 32))
-    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
-    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << c[dex] % 32})
+    const has = types.filter(c => c[0] !== "!")
+    const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
+    const hasq = this._crMask()
+    const notq = this._crMask()
+    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
     const query = new Query([hasq, notq])
     this._queries.push(query)
     return query
@@ -133,7 +127,7 @@ class ECS {
   }
 
   protected _crEnt(id: number) {
-    this._ent[id] = new Uint32Array(Math.ceil(this._cmp.length / 32))
+    this._ent[id] = this._crMask()
     this._setDirty(id)
   }
 
@@ -143,15 +137,15 @@ class ECS {
     this._rm.push(id)
   }
 
-  addComponent(id: number, type: ComponentArray) {
-    const i = type[dex]
+  addComponent(id: number, type: string) {
+    const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
     this._setDirty(id)
     return this
   }
 
-  removeComponent(id: number, type: ComponentArray) {
-    const i = type[dex]
+  removeComponent(id: number, type: string) {
+    const i = this._dex[type]
     this._ent[id][Math.floor(i / 32)] &= ~(1 << i % 32)
     this._setDirty(id)
     return this
@@ -209,4 +203,4 @@ types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
 types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
 types.any = types.a = new Type(Array)
 
-export {ECS, types, not}
+export {ECS, types}
