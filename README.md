@@ -3,6 +3,7 @@ WolfECS is a powerful, lightweight ECS framework written in Typescript.
 
 ## Features
 - Written in Typescript for full, up to date type support.
+- Zero dependencies.
 - NOT operator for queries.
 - Tiny size - 3kB minified uncompressed, contained in a single file.
 - Statically typed components for speed.
