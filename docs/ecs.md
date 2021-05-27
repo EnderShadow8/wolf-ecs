@@ -104,7 +104,7 @@ ecs.destroyEntity(id)
 ___
 
 ## `addComponent`
-Adds a component to an Entity. This doesn't set the values for the component's fields - you have to do that manually. It is recommended to define a [custom initialiser function]() to make creating components easier.
+Adds a component to an Entity. This doesn't set the values for the component's fields - you have to do that manually. It is recommended to define a [factory function](tips.md#factory-functions) to make creating components easier.
 
 This method is chainable.
 

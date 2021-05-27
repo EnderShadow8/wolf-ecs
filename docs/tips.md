@@ -1,7 +1,7 @@
 # Tips
 Some assorted tips for using WolfECS and the ECS paradigm in general.
 
-## Custom initialiser function
+## Factory functions
 Since WolfECS doesn't know what shape your components are going to be, it can't automatically initialise the component's values for you. That doesn't mean you have to set the component values manually though!
 
 For each component you define, write a function which can do the job for you! Even better, with symbol properties, you can attach it directly onto the `ComponentArray` object as a method.
