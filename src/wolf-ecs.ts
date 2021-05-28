@@ -3,7 +3,7 @@ type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array
 
 // Components
 type ComponentDef = Type | {[key: string]: ComponentDef}
-type ComponentArray = TypedArray | unknown[] | {[key: string]: ComponentArray}
+type ComponentArray = TypedArray | {[name: string]: ComponentArray}
 
 function createComponentArray(def: ComponentDef, len: number): ComponentArray {
   if(def instanceof Type) {
@@ -92,7 +92,7 @@ class ECS {
   protected _crMask() {
     return new Uint32Array(Math.ceil(this._ncmp / 32))
   }
-  
+
   createQuery(...types: string[]): Query {
     if(!types.length) {
       throw new Error("Query cannot be empty.")
@@ -180,9 +180,10 @@ class ECS {
   }
 }
 
+// Types
 class Type {
-  arr: TypedArrayConstructor | ArrayConstructor
-  constructor(arr: TypedArrayConstructor | ArrayConstructor) {
+  arr: TypedArrayConstructor
+  constructor(arr: TypedArrayConstructor) {
     this.arr = arr
   }
 }
@@ -198,6 +199,5 @@ types.float32 = types.f32 = types.float = new Type(Float32Array)
 types.float64 = types.f64 = types.double = new Type(Float64Array)
 types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
 types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
-types.any = types.a = new Type(Array)
 
 export {ECS, types}
