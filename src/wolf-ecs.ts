@@ -98,8 +98,10 @@ class ECS {
     if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
-    const cmp = createComponentArray(def, this.MAX_ENTITIES)
-    this.components[name] = cmp
+    if(name in this.components) {
+      throw new Error("Duplicate component names")
+    }
+    this.components[name] = createComponentArray(def, this.MAX_ENTITIES)
     this._dex[name] = this.cmpID++
     return this
   }
@@ -147,6 +149,9 @@ class ECS {
   }
 
   protected _hasComponent(mask: Uint32Array, i: number) {
+    if(i === undefined) {
+      throw new Error("Invalid component name")
+    }
     return mask[Math.floor(i / 32)] & (1 << i % 32)
   }
 
@@ -190,6 +195,9 @@ class ECS {
   }
 
   destroyEntity(id: number) {
+    if(id > this.entID || this._rm.includes(id)) {
+      return
+    }
     this._ent[id].remove(id)
     this._rm.push(id)
   }
