@@ -48,16 +48,19 @@ ecs.defineComponent("velocity", vector)
 const moveQuery = ecs.createQuery("position", "velocity")
 
 // Define a system
-const moveSystem = ecs.defineSystem(function() {
+function moveSystem() {
   // Get relevant components
   const position = ecs.components.position
   const velocity = ecs.components.veslocity
+
   // Iterate over all entities that match a query
-  for(let entity of moveQuery.entities) {
-    position.x[entity] += velocity.x[entity]
-    position.y[entity] += velocity.y[entity]
+  for(let archetype of moveQuery.archetypes) {
+    for(let entity of archetype.entities) {
+      position.x[entity] += velocity.x[entity]
+      position.y[entity] += velocity.y[entity]
+    }
   }
-})
+}
 
 // Create an entity
 const entity = ecs.createEntity()
@@ -75,7 +78,7 @@ ecs.components.velocity.y[entity] = 1
 // Main loop
 function main() {
   // Execute a system
-  moveSystem.execute()
+  moveSystem()
   requestAnimationFrame(main)
 }
 main()

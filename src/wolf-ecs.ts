@@ -16,29 +16,12 @@ function createComponentArray(def: ComponentDef, len: number): ComponentArray {
   return ret
 }
 
-// Systems
-class System {
-  ecs: ECS
-  func: () => void
-
-  constructor(ecs: ECS, func: () => void) {
-    this.ecs = ecs
-    this.func = func
-  }
-
-  execute() {
-    this.ecs._clean()
-    this.func()
-  }
-}
-
 // Queries
 type QueryMask = [Uint32Array, Uint32Array]
 
 class Query {
   mask: QueryMask
-  entities: number[] = []
-  keys: number[] = []
+  archetypes: Archetype[] = []
 
   constructor(mask: QueryMask) {
     this.mask = mask
@@ -60,15 +43,48 @@ function match(target: Uint32Array, mask: QueryMask) {
 }
 
 // ECS
+class Archetype {
+  mask: Uint32Array
+  entities: number[] = []
+  keys: number[] = []
+  change: Archetype[] = []
+
+  constructor(mask: Uint32Array) {
+    this.mask = mask
+  }
+
+  has(x: number) {
+    return this.entities[this.keys[x]] === x
+  }
+
+  add(x: number) {
+    if(!this.has(x)) {
+      this.keys[x] = this.entities.length
+      this.entities.push(x)
+    }
+  }
+
+  remove(x: number) {
+    if(this.has(x)) {
+      if(this.entities.length === 1) {
+        this.entities = []
+      } else {
+        const last = this.entities.pop()!
+        this.keys[last] = this.keys[x]
+        this.entities[this.keys[x]] = last
+      }
+    }
+  }
+}
+
 class ECS {
+  protected _arch: Map<string, Archetype> = new Map()
   protected _dex: {[cmp: string]: number} = {}
-  protected _ent: Uint32Array[] = []
+  protected _ent: Archetype[] = []
   protected _queries: Query[] = []
-  protected _dirty: number[] = []
-  protected _dirtykeys: boolean[] = []
   protected _rm: number[] = []
   protected _ncmp = 0
-  protected _init = false
+  protected _empty: Archetype = new Archetype(new Uint32Array())
   protected cmpID = 0
   protected entID = 0
   components: {[name: string]: ComponentArray} = {}
@@ -79,7 +95,7 @@ class ECS {
   }
 
   defineComponent(name: string, def: ComponentDef = {}) {
-    if(this._init) {
+    if(this.entID) {
       throw new Error("Components can only be defined before entities are created.")
     }
     const cmp = createComponentArray(def, this.MAX_ENTITIES)
@@ -108,8 +124,44 @@ class ECS {
     return query
   }
 
-  defineSystem(func: () => void) {
-    return new System(this, func)
+  protected _getArch(mask: Uint32Array) {
+    if(!this._arch.has(mask.toString())) {
+      const arch = new Archetype(mask.slice())
+      this._arch.set(mask.toString(), arch)
+      for(let q of this._queries) {
+        if(match(mask, q.mask)) {
+          q.archetypes.push(arch)
+        }
+      }
+    }
+    return this._arch.get(mask.toString())!
+  }
+
+  protected _hasComponent(mask: Uint32Array, i: number) {
+    return mask[Math.floor(i / 32)] & (1 << i % 32)
+  }
+
+  protected _archChange(id: number, i: number) {
+    const arch = this._ent[id]
+    arch.remove(id)
+    if(!arch.change[i]) {
+      if(this._hasComponent(arch.mask, i)) {
+        arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
+        arch.change[i] = this._getArch(arch.mask)
+        arch.mask[Math.floor(i / 32)] |= 1 << i % 32
+      } else {
+        arch.mask[Math.floor(i / 32)] |= 1 << i % 32
+        arch.change[i] = this._getArch(arch.mask)
+        arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
+      }
+    }
+    this._ent[id] = arch.change[i]
+    this._ent[id].add(id)
+  }
+
+  protected _crEnt(id: number) {
+    this._ent[id] = this._empty
+    this._empty.add(id)
   }
 
   createEntity(): number {
@@ -118,65 +170,34 @@ class ECS {
       this._crEnt(id)
       return id
     } else {
+      if(!this.entID) {
+        this._empty.mask = this._crMask()
+        this._arch.set(this._empty.mask.toString(), this._empty)
+      }
       this._crEnt(this.entID)
       return this.entID++
     }
   }
 
-  protected _crEnt(id: number) {
-    this._ent[id] = this._crMask()
-    this._setDirty(id)
-  }
-
   destroyEntity(id: number) {
-    delete this._ent[id]
-    this._setDirty(id)
+    this._ent[id].remove(id)
     this._rm.push(id)
   }
 
   addComponent(id: number, type: string) {
     const i = this._dex[type]
-    this._ent[id][Math.floor(i / 32)] |= 1 << i % 32
-    this._setDirty(id)
+    if(!this._hasComponent(this._ent[id].mask, i)) {
+      this._archChange(id, i)
+    }
     return this
   }
 
   removeComponent(id: number, type: string) {
     const i = this._dex[type]
-    this._ent[id][Math.floor(i / 32)] &= ~(1 << i % 32)
-    this._setDirty(id)
+    if(this._hasComponent(this._ent[id].mask, i)) {
+      this._archChange(id, i)
+    }
     return this
-  }
-
-  protected _setDirty(id: number) {
-    if(!this._dirtykeys[id]) {
-      this._dirty.push(id)
-      this._dirtykeys[id] = true
-    }
-  }
-
-  _clean() {
-    for(let id of this._dirty) {
-      for(let q of this._queries) {
-        const m = this._ent[id] && match(this._ent[id], q.mask)
-        if(m && !q.keys[id]) {
-          q.keys[id] = q.entities.length
-          q.entities.push(id)
-        }
-        if(!m && q.entities[q.keys[id]] === id) {
-          if(q.entities.length > 1) {
-            const last = q.entities.pop()!
-            q.entities[q.keys[id]] = last
-            q.keys[last] = q.keys[id]
-          } else {
-            q.entities = []
-          }
-          delete q.keys[id]
-        }
-      }
-    }
-    this._dirty = []
-    this._dirtykeys = []
   }
 }
 

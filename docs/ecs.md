@@ -1,5 +1,5 @@
 # ECS
-ECS is the main class exported by WolfECS. It exposes the user API for creating and manipulating entities, components, systems and queries.
+ECS is the main class exported by WolfECS. It exposes the user API for creating and manipulating entities, components and queries.
 ___
 
 ## `constructor`
@@ -22,7 +22,8 @@ This function is chainable.
 ### Parameters
 | Name | Type | Description |
 | - | - | - |
-| `def` | [`ComponentDef`](component.md#ComponentDef) | Component shape definition. |
+| `name`| `string` | Component type name.
+| `def` | [`ComponentDef`](component.md#componentdef) | Component shape definition. |
 
 ### Returns
 `this`
@@ -34,7 +35,7 @@ ecs.defineComponent("foo", {foo: types.i32, bar: types.f32})
 ___
 
 ## `createQuery`
-Creates and returns a [`Query`](query.md) object. To add a NOT filter, prefix the component's name with `!`.
+Creates and returns a [`Query`](query.md). To add a NOT filter, prefix the component's name with `!`.
 
 ### Parameters
 | Name | Type | Description |
@@ -47,29 +48,6 @@ Creates and returns a [`Query`](query.md) object. To add a NOT filter, prefix th
 ### Example usage
 ```js
 const query = ecs.createQuery("foo", "!bar")
-```
-___
-
-## `defineSystem`
-More info on systems [here](system.md).
-
-Takes a function and binds it to a `System` object which is returned. To execute the system, simply call `System.execute()`.
-
-**DO NOT** call your system's function directly, **IT WILL NOT WORK.** `System.execute()` performs important cleanup tasks to make sure queries behave as expected.
-
-### Parameters
-| Name | Type | Description |
-| - | - | - |
-| `func` | `() => void` | Base function for system. |
-
-### Returns
-[`System`](system.md)
-
-### Example usage
-```js
-const system = ecs.defineSystem(function() {
-  doStuff()
-})
 ```
 ___
 
@@ -143,3 +121,15 @@ This function is chainable.
 ```js
 ecs.addComponent(0, "foo").addComponent(0, "bar")
 ecs.removeComponent(0, "foo")
+```
+___
+
+## `components: {[string]: `[`ComponentArray`](component.md#componentarray)`}`
+This is an object in which all user-defined components are stored.
+
+### Example usage:
+```js
+ecs.defineComponent("foo", {bar: types.i32})
+const id = ecs.createEntity()
+ecs.components.foo.bar[id] = 1
+```

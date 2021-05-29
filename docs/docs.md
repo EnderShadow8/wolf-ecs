@@ -3,10 +3,8 @@
 ## Table of contents
 
 - [ECS](ecs.md)
-- [Types](types.md)
-- [Component](component.md)
-- [Query](query.md)
-- [System](system.md)
+- [Components and Types](component.md)
+- [Queries and Archetypes](query.md)
 ___
 
 - [Tips](tips.md)

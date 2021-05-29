@@ -9,28 +9,26 @@ For each component you define, write a function which can do the job for you! Ev
 ```js
 const ecs = new ECS()
 
-const add = Symbol("add")
+ecs.defineComponent("foobar", {foo: types.i32, bar: types.i32})
 
-const component = ecs.defineComponent({foo: types.i32, bar: types.i32})
-component[add] = function(id, foo, bar) {
-  ecs.addComponent(id, this)
-  this.foo[id] = foo
-  this.bar[id] = bar
+function addFoobarToEntity(id, foo, bar) {
+  ecs.components.foobar.foo = foo
+  ecs.components.foobar.bar = bar
 }
 
 // And now you no longer have to set your component fields manually!
 const id = ecs.createEntity()
-component[add](id, 1, 2)
+addFoobarToEntity(id, 1, 2)
 ```
 
 ## Tag components
 A component with no value is called a tag component. This is useful for systems which only want to act on a certain group of entities which have similar sets of components. For example, a system might be in charge of keyboard control using WASD. Giving an entity a `keyboardControl` tag can tell the system to operate on that entity.
 
-To create a tag component in WolfECS, simply call `ECS.defineComponent` without any arguments:
+To create a tag component in WolfECS, simply call `ECS.defineComponent` with only a `name` argument:
 
 ```js
-const tagComponent = ecs.defineComponent()
-console.log(tagComponent) // {}
+ecs.defineComponent("tagComponent")
+console.log(ecs.components.tagComponent) // {}
 ```
 
 ## Faster looping
