@@ -11,6 +11,7 @@
   "types": "wolf-ecs.d.ts",
   "type": "module",
   "scripts": {
+    "test": "mocha",
     "pub": "npm run build; cp package.json README.md dist; cd dist; npm publish && (cd ../; npm run gh-release)",
     "gh-release": "gh release create dist/wolf-ecs.js dist/wolf-ecs.min.js dist/wolf-ecs.d.ts",
     "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -c -m --no-annotations",
@@ -27,7 +28,9 @@
   },
   "homepage": "https://github.com/EnderShadow8/wolf-ecs",
   "devDependencies": {
-    "typescript": "^4.2.4",
-    "uglify-js": "^3.13.6"
+    "@types/mocha": "^8.2.2",
+    "chai": "^4.3.4",
+    "typescript": "^4.3.2",
+    "uglify-js": "^3.13.8"
   }
 }
