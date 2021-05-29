@@ -83,8 +83,8 @@ class ECS {
   protected _ent: Archetype[] = []
   protected _queries: Query[] = []
   protected _rm: number[] = []
-  protected _ncmp = 0
   protected _empty: Archetype = new Archetype(new Uint32Array())
+  protected _init = false
   protected cmpID = 0
   protected entID = 0
   components: {[name: string]: ComponentArray} = {}
@@ -95,21 +95,21 @@ class ECS {
   }
 
   defineComponent(name: string, def: ComponentDef = {}) {
-    if(this.entID) {
+    if(this._init) {
       throw new Error("Components can only be defined before entities are created.")
     }
     const cmp = createComponentArray(def, this.MAX_ENTITIES)
     this.components[name] = cmp
     this._dex[name] = this.cmpID++
-    this._ncmp++
     return this
   }
 
   protected _crMask() {
-    return new Uint32Array(Math.ceil(this._ncmp / 32))
+    return new Uint32Array(Math.ceil(this.cmpID / 32))
   }
 
   createQuery(...types: string[]): Query {
+    this._init = true
     if(!types.length) {
       throw new Error("Query cannot be empty.")
     }
@@ -117,8 +117,17 @@ class ECS {
     const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
     const hasq = this._crMask()
     const notq = this._crMask()
-    has.forEach((c, i) => {hasq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
-    not.forEach((c, i) => {notq[Math.floor(i / 32)] |= 1 << this._dex[c] % 32})
+    const updateMask = (cmps: string[], mask: Uint32Array) => {
+      cmps.forEach(c => {
+        const i = this._dex[c]
+        if(i === undefined) {
+          throw new Error("Invalid component name")
+        }
+        mask[Math.floor(i / 32)] |= 1 << i % 32
+      })
+    }
+    updateMask(has, hasq)
+    updateMask(not, notq)
     const query = new Query([hasq, notq])
     this._queries.push(query)
     return query
@@ -171,6 +180,7 @@ class ECS {
       return id
     } else {
       if(!this.entID) {
+        this._init = true
         this._empty.mask = this._crMask()
         this._arch.set(this._empty.mask.toString(), this._empty)
       }
