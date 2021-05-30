@@ -83,6 +83,7 @@ class ECS {
   protected _ent: Archetype[] = []
   protected _queries: Query[] = []
   protected _rm: number[] = []
+  protected _rmkeys: boolean[] = []
   protected _empty: Archetype = new Archetype(new Uint32Array())
   protected _init = false
   protected cmpID = 0
@@ -181,6 +182,7 @@ class ECS {
   createEntity(): number {
     if(this._rm.length) {
       const id = this._rm.pop()!
+      this._rmkeys[id] = false
       this._crEnt(id)
       return id
     } else {
@@ -195,7 +197,7 @@ class ECS {
   }
 
   destroyEntity(id: number) {
-    if(id < this.entID && !this._rm.includes(id)) {
+    if(id < this.entID && !this._rmkeys[id]) {
       this._ent[id].remove(id)
       this._rm.push(id)
     }
