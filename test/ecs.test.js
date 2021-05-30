@@ -141,29 +141,42 @@ describe("ECS", function() {
 
       ecs.defineComponent("cmp1")
       ecs.defineComponent("cmp2")
-      const id = ecs.createEntity()
+      const id1 = ecs.createEntity()
+      const id2 = ecs.createEntity()
       const q1 = ecs.createQuery("cmp1")
       const q2 = ecs.createQuery("cmp1", "!cmp2")
 
-      ecs.addComponent(id, "cmp1")
-      expect(ecs._arch.get("0").has(id)).to.be.false
-      expect(ecs._arch.get("1").has(id)).to.be.true
+      ecs.addComponent(id1, "cmp1")
+      ecs.addComponent(id2, "cmp1")
+      expect(ecs._arch.get("0").has(id1)).to.be.false
+      expect(ecs._arch.get("0").has(id2)).to.be.false
+      expect(ecs._arch.get("1").has(id1)).to.be.true
+      expect(ecs._arch.get("1").has(id2)).to.be.true
       expect(q1.archetypes).to.have.members(arches("1"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
-      ecs.addComponent(id, "cmp2")
-      expect(arches("0", "1").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("3").has(id)).to.be.true
+      ecs.addComponent(id1, "cmp2")
+      ecs.addComponent(id2, "cmp2")
+      expect(arches("0", "1").map(i => i.has(id1))).to.not.include(true)
+      expect(arches("0", "1").map(i => i.has(id2))).to.not.include(true)
+      expect(ecs._arch.get("3").has(id1)).to.be.true
+      expect(ecs._arch.get("3").has(id2)).to.be.true
 
-      ecs.removeComponent(id, "cmp1")
-      expect(arches("0", "1", "3").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("2").has(id)).to.be.true
+      ecs.removeComponent(id1, "cmp1")
+      ecs.removeComponent(id2, "cmp1")
+      expect(arches("0", "1", "3").map(i => i.has(id1))).to.not.include(true)
+      expect(arches("0", "1", "3").map(i => i.has(id2))).to.not.include(true)
+      expect(ecs._arch.get("2").has(id1)).to.be.true
+      expect(ecs._arch.get("2").has(id2)).to.be.true
       expect(q1.archetypes).to.have.members(arches("1", "3"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
-      ecs.removeComponent(id, "cmp2")
-      expect(arches("1", "2", "3").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("0").has(id)).to.be.true
+      ecs.removeComponent(id1, "cmp2")
+      ecs.removeComponent(id2, "cmp2")
+      expect(arches("1", "2", "3").map(i => i.has(id1))).to.not.include(true)
+      expect(arches("1", "2", "3").map(i => i.has(id2))).to.not.include(true)
+      expect(ecs._arch.get("0").has(id1)).to.be.true
+      expect(ecs._arch.get("0").has(id2)).to.be.true
     })
 
     it("should throw an error on invalid name", function() {
