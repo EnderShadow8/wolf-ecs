@@ -195,11 +195,10 @@ class ECS {
   }
 
   destroyEntity(id: number) {
-    if(id > this.entID || this._rm.includes(id)) {
-      return
+    if(id < this.entID && !this._rm.includes(id)) {
+      this._ent[id].remove(id)
+      this._rm.push(id)
     }
-    this._ent[id].remove(id)
-    this._rm.push(id)
   }
 
   addComponent(id: number, type: string) {
