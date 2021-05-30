@@ -83,12 +83,13 @@ describe("ECS", function() {
     })
 
     it("should use and remove recycled IDs from _rm", function() {
-      ecs.entID = 2
-      const arr = [0, 1]
-      ecs._rm = arr.slice()
-      const id = ecs.createEntity()
+      const id1 = ecs.createEntity()
+      const id2 = ecs.createEntity()
+      ecs.destroyEntity(id1)
+      ecs.destroyEntity(id2)
 
-      expect(arr).to.include(id)
+      const id = ecs.createEntity()
+      expect([0, 1]).to.include(id)
       expect(ecs._rm).to.not.include(id)
     })
 
@@ -132,51 +133,42 @@ describe("ECS", function() {
     })
   })
 
-  describe("addComponent", function() {
-    it("should update archetype of entity", function() {
+  describe("addComponent / removeComponent", function() {
+    it("should update archetypes of entity and query", function() {
+      function arches(...arch) {
+        return arch.map(i => ecs._arch.get(i))
+      }
+
       ecs.defineComponent("cmp1")
       ecs.defineComponent("cmp2")
       const id = ecs.createEntity()
+      const q1 = ecs.createQuery("cmp1")
+      const q2 = ecs.createQuery("cmp1", "!cmp2")
 
       ecs.addComponent(id, "cmp1")
       expect(ecs._arch.get("0").has(id)).to.be.false
       expect(ecs._arch.get("1").has(id)).to.be.true
+      expect(q1.archetypes).to.have.members(arches("1"))
+      expect(q2.archetypes).to.have.members(arches("1"))
 
       ecs.addComponent(id, "cmp2")
-      expect(ecs._arch.get("0").has(id)).to.be.false
-      expect(ecs._arch.get("1").has(id)).to.be.false
+      expect(arches("0", "1").map(i => i.has(id))).to.not.contain(true)
       expect(ecs._arch.get("3").has(id)).to.be.true
+
+      ecs.removeComponent(id, "cmp1")
+      expect(arches("0", "1", "3").map(i => i.has(id))).to.not.contain(true)
+      expect(ecs._arch.get("2").has(id)).to.be.true
+      expect(q1.archetypes).to.have.members(arches("1", "3"))
+      expect(q2.archetypes).to.have.members(arches("1"))
+
+      ecs.removeComponent(id, "cmp2")
+      expect(arches("1", "2", "3").map(i => i.has(id))).to.not.contain(true)
+      expect(ecs._arch.get("0").has(id)).to.be.true
     })
 
     it("should throw an error on invalid name", function() {
       const id = ecs.createEntity()
       expect(() => ecs.addComponent(id, "wrong")).to.throw()
-    })
-  })
-
-  describe("removeComponent", function() {
-    it("should update archetype of entity", function() {
-      ecs.defineComponent("cmp1")
-      ecs.defineComponent("cmp2")
-      const id = ecs.createEntity()
-      ecs.addComponent(id, "cmp1")
-      ecs.addComponent(id, "cmp2")
-
-      ecs.removeComponent(id, "cmp1")
-      expect(ecs._arch.get("0").has(id)).to.be.false
-      expect(ecs._arch.get("1").has(id)).to.be.false
-      expect(ecs._arch.get("2").has(id)).to.be.true
-      expect(ecs._arch.get("3").has(id)).to.be.false
-
-      ecs.removeComponent(id, "cmp2")
-      expect(ecs._arch.get("0").has(id)).to.be.true
-      expect(ecs._arch.get("1").has(id)).to.be.false
-      expect(ecs._arch.get("2").has(id)).to.be.false
-      expect(ecs._arch.get("3").has(id)).to.be.false
-    })
-
-    it("should throw an error on invalid name", function() {
-      const id = ecs.createEntity()
       expect(() => ecs.removeComponent(id, "wrong")).to.throw()
     })
   })
