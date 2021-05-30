@@ -31,8 +31,14 @@ describe("ECS", function() {
       expect(ecs._dex.u32).to.equal(1)
     })
 
-    it("should throw an error if _init === true", function() {
-      ecs._init = true
+    it("should throw an error if entity already created", function() {
+      ecs.createEntity()
+      expect(() => ecs.defineComponent("wrong", types.u32)).to.throw()
+    })
+
+    it("should throw an error if query already created", function() {
+      ecs.defineComponent("cmp")
+      ecs.createQuery("cmp")
       expect(() => ecs.defineComponent("wrong", types.u32)).to.throw()
     })
 
@@ -43,7 +49,7 @@ describe("ECS", function() {
   })
 
   describe("createQuery", function() {
-    it("should return a query with appropriate mask", function() {
+    it("should return a query with correct mask", function() {
       ecs.defineComponent("cmp")
       for(let i = 0; i < 32; i++) {
         ecs.defineComponent(i.toString())
@@ -57,12 +63,6 @@ describe("ECS", function() {
       expect(not[0]).to.equal(1)
       expect(query.mask[0][0]).to.equal(0)
       expect(query.mask[0][1]).to.equal(1)
-    })
-
-    it("should set _init to true", function() {
-      ecs.defineComponent("cmp")
-      ecs.createQuery("cmp")
-      expect(ecs._init).to.be.true
     })
 
     it("should throw an error on no arguments", function() {
