@@ -66,10 +66,8 @@ class Archetype {
 
   remove(x: number) {
     if(this.has(x)) {
-      if(this.entities.length === 1) {
-        this.entities = []
-      } else {
-        const last = this.entities.pop()!
+      const last = this.entities.pop()!
+      if(x !== last) {
         this.keys[last] = this.keys[x]
         this.entities[this.keys[x]] = last
       }

@@ -152,17 +152,17 @@ describe("ECS", function() {
       expect(q2.archetypes).to.have.members(arches("1"))
 
       ecs.addComponent(id, "cmp2")
-      expect(arches("0", "1").map(i => i.has(id))).to.not.contain(true)
+      expect(arches("0", "1").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("3").has(id)).to.be.true
 
       ecs.removeComponent(id, "cmp1")
-      expect(arches("0", "1", "3").map(i => i.has(id))).to.not.contain(true)
+      expect(arches("0", "1", "3").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("2").has(id)).to.be.true
       expect(q1.archetypes).to.have.members(arches("1", "3"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
       ecs.removeComponent(id, "cmp2")
-      expect(arches("1", "2", "3").map(i => i.has(id))).to.not.contain(true)
+      expect(arches("1", "2", "3").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("0").has(id)).to.be.true
     })
 
