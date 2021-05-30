@@ -1,4 +1,10 @@
 # WolfECS
+![](https://img.shields.io/npm/v/wolf-ecs)
+![](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![](https://img.shields.io/npm/types/wolf-ecs)
+![](https://img.shields.io/npm/dw/wolf-ecs)
+![](https://img.shields.io/npm/l/wolf-ecs)
+
 WolfECS is a powerful, lightweight ECS framework written in Typescript.
 
 ## Features
