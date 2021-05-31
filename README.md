@@ -7,13 +7,15 @@
 
 WolfECS is a powerful, lightweight ECS framework written in Typescript.
 
+Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](https://github.com/NateTheGreatt/bitECS) from which I took many valuable techniques which I then improved upon.
+
 ## Features
 - Written in Typescript for full, up to date type support.
 - Zero dependencies.
 - NOT operator for queries.
 - Statically typed components for speed.
 - Archetypes using bitwise operations for enhanced performance.
-- Did I mention it's *[fast](https://github.com/EnderShadow8/ecs-benchmark)?*
+- *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/EnderShadow8/ecs-benchmark).*
 
 ## Installation
 ### Installing locally
@@ -95,6 +97,11 @@ main()
 *- [Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)*
 
 [This article](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d) explains ECS very well.
+
+## Possible future features
+New improvements to WolfECS's performance are constantly being tested.
+- Parallelisation
+- True archetypes
 
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
