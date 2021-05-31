@@ -239,3 +239,4 @@ types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
 types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
 
 export {ECS, types}
+export {ComponentDef, ComponentArray, QueryMask} // For Typescript
