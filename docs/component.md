@@ -18,6 +18,8 @@ The `Type`s exposed to the user are in the `types` export.
 | `uint32` || `u32` | `uint` | 32-bit unsigned integer. |
 | `float32` || `f32` | `float` | 32-bit floating point number. |
 | `float64` || `f64` | `double` | 64-bit double precision floating point number. |
+| `int64` | `bigint64` | `i64` | `long` | 64-bit signed integer. |
+| `uint64`| `biguint64`  | `u64` | `ulong` | 64-bit unsigned integer. |
 ___
 
 ## `ComponentDef`

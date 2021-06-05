@@ -166,9 +166,10 @@ describe("ECS", function() {
   describe("serialise / deserialise", function() {
     for(let i = 0; i < 5; i++) {
       it(`should produce effectively equal output (run #${i + 1})`, function() {
+        ecs = new ECS(1000)
         ecs.defineComponent("cmp1")
         ecs.defineComponent("cmp2", types.f64)
-        ecs.defineComponent("cmp3", {foo: types.u32, bar: types.f32})
+        ecs.defineComponent("cmp3", {foo: types.u32, bar: types.i64})
 
         const ids = []
         for(let i = 0; i < 1000; i++) {
@@ -189,7 +190,7 @@ describe("ECS", function() {
             const id = ids[Math.floor(Math.random() * ids.length)]
             ecs.addComponent(id, "cmp3")
             ecs.components.cmp3.foo[id] = Math.random() * 1000
-            ecs.components.cmp3.bar[id] = Math.random() * 1000
+            ecs.components.cmp3.bar[id] = BigInt(Math.floor(Math.random() * 1000))
           }
         }
 

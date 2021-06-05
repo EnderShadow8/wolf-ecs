@@ -1,5 +1,5 @@
-type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
+type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
+type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 
 // Types
 class Type {
@@ -18,6 +18,8 @@ types.int32 = types.i32 = types.int = new Type(Int32Array)
 types.uint32 = types.u32 = types.uint = new Type(Uint32Array)
 types.float32 = types.f32 = types.float = new Type(Float32Array)
 types.float64 = types.f64 = types.double = new Type(Float64Array)
+types.int64 = types.bigint64 = types.i64 = types.long = new Type(BigInt64Array)
+types.uint64 = types.biguint64 = types.u64 = types.ulong = new Type(BigUint64Array)
 
 const reverseTypes: Map<TypedArrayConstructor, string> = new Map()
 for(let i in types) {
@@ -44,16 +46,17 @@ function processTreeFactory<InputLeafType, OutputLeafType>( // Curry!
 
 type ComponentDef = Tree<Type>
 type ComponentArray = Tree<TypedArray>
-type FieldArray = [string, number[]]
+type FieldArray = [string, number[], (number | string)[]]
 type ComponentJSON = Tree<FieldArray>
 
 function encodeArr(arr: TypedArray) {
-  const ret: [string, number[]] = [reverseTypes.get(Object.getPrototypeOf(arr).constructor)!, []]
+  const ret: FieldArray = [reverseTypes.get(Object.getPrototypeOf(arr).constructor)!, [], []]
   let j = 0
   for(let i = 0; i < arr.length; i++) {
     if(arr[i] !== 0) {
       ret[1].push(j)
-      ret[1].push(arr[i])
+      const x = arr[i]
+      ret[2].push(typeof x === "bigint" ? x.toString() : x)
       j = 0
     }
     j++
@@ -64,9 +67,10 @@ function encodeArr(arr: TypedArray) {
 function decodeArr(dt: FieldArray, len: number) {
   const arr = new types[dt[0]].arr(len)
   let j = 0
-  for(let i = 0; i < dt[1].length; i += 2) {
+  for(let i = 0; i < dt[1].length; i += 1) {
     j += dt[1][i]
-    arr[j] = dt[1][i + 1]
+    const x = dt[2][i]
+    arr[j] = typeof x === "string" ? BigInt(x) : x
   }
   return arr
 }
