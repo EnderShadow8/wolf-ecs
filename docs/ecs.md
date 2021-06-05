@@ -5,25 +5,50 @@ ___
 ## `constructor`
 Creates an instance of ECS.
 
+### **2 overloads**
+
+### Parameters
+| Name | Type | Description |
+| - | - | - |
+| `max = 1e4` | `number` | Maximum number of entities at one time.
+
 ### Returns
 `ECS`
 
 ### Example usage
 ```js
 const ecs = new ECS()
+const bigEcs = new ECS(1e6)
+```
+
+### Parameters
+| Name | Type | Description |
+| - | - | - |
+| `serialised` | `object \| string` | Object outputted by `ECS.serialise()`, optionally stringified via `JSON.stringify`.
+
+### Returns
+`ECS`
+
+### Example usage
+```js
+const ecs = new ECS()
+const serialisedEcs = ecs.serialise()
+const ecs2 = new ECS(serialisedEcs)
+const ecs3 = new ECS(JSON.stringify(serialisedEcs))
+// All exactly the same
 ```
 ___
 
 ## `defineComponent`
-Defines a component type. A component's pool can be accessed via `ecs.components.componentName`.
+Defines a component. A component's pool can be accessed via `ecs.components.componentName`.
 
 This function is chainable.
 
 ### Parameters
 | Name | Type | Description |
 | - | - | - |
-| `name`| `string` | Component type name.
-| `def` | [`ComponentDef`](component.md#componentdef) | Component shape definition. |
+| `name`| `string` | Component name.
+| `def?` | [`ComponentDef`](component.md#componentdef) | Component shape definition. |
 
 ### Returns
 `this`
@@ -92,7 +117,7 @@ This method is chainable.
 | Name | Type | Description |
 | - | - | - |
 | `id` | `number` | Entity ID. |
-| `type` | `string` | Component type name. |
+| `cmp` | `string` | Component name. |
 
 ### Returns
 `this`
@@ -112,7 +137,7 @@ This function is chainable.
 | Name | Type | Description |
 | - | - | - |
 | `id` | `number` | Entity ID. |
-| `type` | `string` | Component type name. |
+| `cmp` | `string` | Component name. |
 
 ### Returns
 `this`

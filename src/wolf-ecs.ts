@@ -1,19 +1,74 @@
-type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor | BigInt64ArrayConstructor | BigUint64ArrayConstructor
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
+type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor | Float64ArrayConstructor
+type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array
+
+// Types
+class Type {
+  arr: TypedArrayConstructor
+  constructor(arr: TypedArrayConstructor) {
+    this.arr = arr
+  }
+}
+
+const types: {[type: string]: Type} = {}
+types.int8 = types.i8 = types.char = new Type(Int8Array)
+types.uint8 = types.u8 = types.uchar = new Type(Uint8Array)
+types.int16 = types.i16 = types.short = new Type(Int16Array)
+types.uint16 = types.u16 = types.ushort = new Type(Uint16Array)
+types.int32 = types.i32 = types.int = new Type(Int32Array)
+types.uint32 = types.u32 = types.uint = new Type(Uint32Array)
+types.float32 = types.f32 = types.float = new Type(Float32Array)
+types.float64 = types.f64 = types.double = new Type(Float64Array)
+
+const reverseTypes: Map<TypedArrayConstructor, string> = new Map()
+for(let i in types) {
+  reverseTypes.set(types[i].arr, i)
+}
 
 // Components
-type ComponentDef = Type | {[key: string]: ComponentDef}
-type ComponentArray = TypedArray | {[name: string]: ComponentArray}
-
-function createComponentArray(def: ComponentDef, len: number): ComponentArray {
-  if(def instanceof Type) {
-    return new def.arr(len)
+type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
+function processTreeFactory<InputLeafType, OutputLeafType>( // Curry!
+  processLeaf: (x: InputLeafType) => OutputLeafType,
+  isLeaf: (x: Tree<InputLeafType>) => x is InputLeafType
+) {
+  return function processTree(node: Tree<InputLeafType>) {
+    if(isLeaf(node)) {
+      return processLeaf(node)
+    }
+    const ret: Tree<OutputLeafType> = {}
+    for(let i in node) {
+      ret[i] = processTree(node[i])
+    }
+    return ret
   }
-  const ret: ComponentArray = {}
-  for(let i in def) {
-    ret[i] = createComponentArray(def[i], len)
+}
+
+type ComponentDef = Tree<Type>
+type ComponentArray = Tree<TypedArray>
+type FieldArray = [string, number[]]
+type ComponentJSON = Tree<FieldArray>
+
+function encodeArr(arr: TypedArray) {
+  const ret: [string, number[]] = [reverseTypes.get(Object.getPrototypeOf(arr).constructor)!, []]
+  let j = 0
+  for(let i = 0; i < arr.length; i++) {
+    if(arr[i] !== 0) {
+      ret[1].push(j)
+      ret[1].push(arr[i])
+      j = 0
+    }
+    j++
   }
   return ret
+}
+
+function decodeArr(dt: FieldArray, len: number) {
+  const arr = new types[dt[0]].arr(len)
+  let j = 0
+  for(let i = 0; i < dt[1].length; i += 2) {
+    j += dt[1][i]
+    arr[j] = dt[1][i + 1]
+  }
+  return arr
 }
 
 // Queries
@@ -83,24 +138,75 @@ class ECS {
   protected _rm: number[] = []
   protected _rmkeys: boolean[] = []
   protected _empty: Archetype = new Archetype(new Uint32Array())
-  protected _init = false
   protected cmpID = 0
   protected entID = 0
   components: {[name: string]: ComponentArray} = {}
-  MAX_ENTITIES: number
+  MAX_ENTITIES: number = 1e4
 
-  constructor(max: number = 1e4) {
-    this.MAX_ENTITIES = max
+  constructor(max: number)
+  constructor(serialised: object | string)
+  constructor(arg: any) {
+    if(typeof arg === "number") {
+      this.MAX_ENTITIES = arg
+    } else if(arg !== undefined) {
+      if(typeof arg === "string") {
+        arg = JSON.parse(arg)
+      }
+      for(let i in arg) {
+        if(!["_ent", "components"].includes(i)) {
+          this[i as keyof ECS] = arg[i]
+        }
+      }
+      if(this.entID) {
+        this._initEmpty()
+      }
+      for(let i of arg._rm) {
+        this._rmkeys[i] = true
+      }
+      for(let i = 0; i < arg._ent.length; i++) {
+        if(arg._ent[i] !== 0) {
+          this._ent[i] = this._getArch(new Uint32Array(arg._ent[i]))
+          this._ent[i].add(i)
+        }
+      }
+      for(let i in arg.components) {
+        this.components[i] = processTreeFactory(
+          (leaf: FieldArray) => decodeArr(leaf, this.MAX_ENTITIES),
+          (node: ComponentJSON): node is FieldArray => node instanceof Array
+        )(arg.components[i])
+      } // TODO: docs
+    }
+  }
+
+  serialise() {
+    const ret: any = {} // TODO: better typings
+    for(let i in this) {
+      if(!["_arch", "_ent", "_queries", "_rmkeys", "_empty", "components"].includes(i)) {
+        ret[i] = this[i]
+      }
+    }
+    ret._ent = this._ent.map((a, i) => a.has(i) ? Array.from(a.mask) : 0)
+    ret.components = {}
+    for(let i in this.components) {
+      ret.components[i] = processTreeFactory(
+        encodeArr,
+        (node: ComponentArray): node is TypedArray => typeof node.length === "number"
+      )(this.components[i])
+    }
+    return ret
   }
 
   defineComponent(name: string, def: ComponentDef = {}) {
-    if(this._init) {
+    if(this.entID) {
       throw new Error("Components can only be defined before entities are created.")
     }
     if(name in this.components) {
       throw new Error("Duplicate component names")
     }
-    this.components[name] = createComponentArray(def, this.MAX_ENTITIES)
+    this.components[name] = processTreeFactory(
+      (node: Type) => new node.arr(this.MAX_ENTITIES),
+      (node: ComponentDef): node is Type => node instanceof Type
+    )(def)
     this._dex[name] = this.cmpID++
     return this
   }
@@ -109,8 +215,12 @@ class ECS {
     return new Uint32Array(Math.ceil(this.cmpID / 32))
   }
 
+  protected _initEmpty() {
+    this._empty.mask = this._crMask()
+    this._arch.set(this._empty.mask.toString(), this._empty)
+  }
+
   createQuery(...types: string[]): Query {
-    this._init = true
     if(!types.length) {
       throw new Error("Query cannot be empty.")
     }
@@ -130,6 +240,7 @@ class ECS {
     updateMask(has, hasq)
     updateMask(not, notq)
     const query = new Query([hasq, notq])
+    this._arch.forEach(i => {if(match(i.mask, query.mask)) {query.archetypes.push(i)}})
     this._queries.push(query)
     return query
   }
@@ -185,9 +296,7 @@ class ECS {
       return id
     } else {
       if(!this.entID) {
-        this._init = true
-        this._empty.mask = this._crMask()
-        this._arch.set(this._empty.mask.toString(), this._empty)
+        this._initEmpty()
       }
       this._crEnt(this.entID)
       return this.entID++
@@ -198,19 +307,20 @@ class ECS {
     if(id < this.entID && !this._rmkeys[id]) {
       this._ent[id].remove(id)
       this._rm.push(id)
+      this._rmkeys[id] = true
     }
   }
 
-  addComponent(id: number, type: string) {
-    const i = this._dex[type]
+  addComponent(id: number, cmp: string) {
+    const i = this._dex[cmp]
     if(!this._hasComponent(this._ent[id].mask, i)) {
       this._archChange(id, i)
     }
     return this
   }
 
-  removeComponent(id: number, type: string) {
-    const i = this._dex[type]
+  removeComponent(id: number, cmp: string) {
+    const i = this._dex[cmp]
     if(this._hasComponent(this._ent[id].mask, i)) {
       this._archChange(id, i)
     }
@@ -218,25 +328,5 @@ class ECS {
   }
 }
 
-// Types
-class Type {
-  arr: TypedArrayConstructor
-  constructor(arr: TypedArrayConstructor) {
-    this.arr = arr
-  }
-}
-
-const types: {[type: string]: Type} = {}
-types.int8 = types.i8 = types.char = new Type(Int8Array)
-types.uint8 = types.u8 = types.uchar = new Type(Uint8Array)
-types.int16 = types.i16 = types.short = new Type(Int16Array)
-types.uint16 = types.u16 = types.ushort = new Type(Uint16Array)
-types.int32 = types.i32 = types.int = new Type(Int32Array)
-types.uint32 = types.u32 = types.uint = new Type(Uint32Array)
-types.float32 = types.f32 = types.float = new Type(Float32Array)
-types.float64 = types.f64 = types.double = new Type(Float64Array)
-types.bigint64 = types.int64 = types.i64 = types.long = new Type(BigInt64Array)
-types.biguint64 = types.uint64 = types.u64 = types.ulong = new Type(BigUint64Array)
-
 export {ECS, types}
-export {ComponentDef, ComponentArray, QueryMask} // For Typescript
+export {ComponentDef, ComponentArray, ComponentJSON, QueryMask} // For Typescript

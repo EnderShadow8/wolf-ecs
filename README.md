@@ -13,6 +13,7 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 - Written in Typescript for full, up to date type support.
 - Zero dependencies.
 - NOT operator for queries.
+- Built in serialisation.
 - Statically typed components for speed.
 - Archetypes using bitwise operations for enhanced performance.
 - *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/EnderShadow8/ecs-benchmark).*
