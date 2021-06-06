@@ -202,17 +202,20 @@ class ECS {
 
   defineComponent(name: string, def: ComponentDef = {}) {
     if(this.entID) {
-      throw new Error("Components can only be defined before entities are created.")
+      throw new Error("Components can only be defined before entities are created")
     }
     if(name in this.components) {
       throw new Error("Duplicate component names")
     }
-    this.components[name] = processTreeFactory(
-      (node: Type) => new node.arr(this.MAX_ENTITIES),
-      (node: ComponentDef): node is Type => node instanceof Type
-    )(def)
-    this._dex[name] = this.cmpID++
-    return this
+    if(/^[\w-]+$/.test(name)) {
+      this.components[name] = processTreeFactory(
+        (node: Type) => new node.arr(this.MAX_ENTITIES),
+        (node: ComponentDef): node is Type => node instanceof Type
+      )(def)
+      this._dex[name] = this.cmpID++
+      return this
+    }
+    throw new Error("Invalid component name: component names can only contain alphanumeric characters, underscores and hyphens.")
   }
 
   protected _crMask() {
@@ -226,7 +229,7 @@ class ECS {
 
   createQuery(...types: string[]): Query {
     if(!types.length) {
-      throw new Error("Query cannot be empty.")
+      throw new Error("Query cannot be empty")
     }
     const has = types.filter(c => c[0] !== "!")
     const not = types.filter(c => c[0] === "!").map(c => c.slice(1))

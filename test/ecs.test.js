@@ -40,6 +40,14 @@ describe("ECS", function() {
       ecs.defineComponent("wrong", types.u32)
       expect(() => ecs.defineComponent("wrong", types.u32)).to.throw()
     })
+
+    it("should throw error on invalid names", function() {
+      expect(() => ecs.defineComponent("", types.u32)).to.throw()
+      expect(() => ecs.defineComponent("!")).to.throw()
+      expect(() => ecs.defineComponent("a s d f")).to.throw()
+      expect(() => ecs.defineComponent("k!k")).to.throw()
+      expect(() => ecs.defineComponent("#$%^&*()")).to.throw()
+    })
   })
 
   describe("createQuery", function() {
