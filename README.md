@@ -5,7 +5,7 @@
 ![](https://img.shields.io/npm/dw/wolf-ecs)
 ![](https://img.shields.io/npm/l/wolf-ecs)
 
-WolfECS is a powerful, lightweight ECS framework written in Typescript.
+WolfECS is a powerful, lightweight Entity Component System framework written in Typescript.
 
 Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](https://github.com/NateTheGreatt/bitECS) from which I took many valuable techniques which I then improved upon.
 
