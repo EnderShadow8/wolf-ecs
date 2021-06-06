@@ -18,6 +18,11 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 - Archetypes using bitwise operations for enhanced performance.
 - *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/EnderShadow8/ecs-benchmark).*
 
+### Possible future features
+- Multithreading
+- True archetypes (for cache locality)
+- [Finite state machine support](https://ajmmertens.medium.com/why-storing-state-machines-in-ecs-is-a-bad-idea-742de7a18e59) (Sander Mertens)
+
 ## Installation
 ### Installing locally
 npm:
@@ -98,11 +103,6 @@ main()
 *- [Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)*
 
 [This article](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d) explains ECS very well.
-
-## Possible future features
-New improvements to WolfECS's performance are constantly being tested.
-- Parallelisation
-- True archetypes
 
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
