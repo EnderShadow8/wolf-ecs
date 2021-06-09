@@ -4,7 +4,7 @@
 
 - [ECS](ecs.md)
 - [Components and Types](component.md)
-- [Queries and Archetypes](query.md)
+- [Systems, Queries and Archetypes](system.md)
 ___
 
 - [Tips](tips.md)
