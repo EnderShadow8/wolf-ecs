@@ -14,7 +14,7 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 - Zero dependencies.
 - NOT operator for queries.
 - Built in serialisation.
-- *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/EnderShadow8/ecs-benchmark).*
+- *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/noctjs/ecs-benchmark).*
 
 ### Possible future features
 - Multithreading
