@@ -5,7 +5,7 @@
 ![](https://img.shields.io/npm/dw/wolf-ecs)
 ![](https://img.shields.io/npm/l/wolf-ecs)
 
-WolfECS is a powerful, lightweight Entity Component System framework written in Typescript.
+The fastest Entity Component System implementation for the web.
 
 Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](https://github.com/NateTheGreatt/bitECS) from which I took many valuable techniques which I then improved upon.
 
@@ -14,8 +14,6 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 - Zero dependencies.
 - NOT operator for queries.
 - Built in serialisation.
-- Statically typed components for speed.
-- Archetypes using bitwise operations for enhanced performance.
 - *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/EnderShadow8/ecs-benchmark).*
 
 ### Possible future features
@@ -64,7 +62,7 @@ const moveQuery = ecs.createQuery("position", "velocity")
 function moveSystem() {
   // Get relevant components
   const position = ecs.components.position
-  const velocity = ecs.components.veslocity
+  const velocity = ecs.components.velocity
 
   // Iterate over all entities that match a query
   for(let archetype of moveQuery.archetypes) {
