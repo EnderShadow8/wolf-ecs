@@ -347,5 +347,5 @@ class ECS {
   }
 }
 
-export {ECS, types}
+export {ECS, types, defineSystem}
 export {ComponentDef, ComponentArray, ComponentJSON, QueryMask} // For Typescript
