@@ -2,28 +2,32 @@ type TypedArrayConstructor = Int8ArrayConstructor | Uint8ArrayConstructor | Int1
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array
 
 // Types
-class Type {
+class Type<arr extends TypedArrayConstructor = TypedArrayConstructor> {
   arr: TypedArrayConstructor
-  constructor(arr: TypedArrayConstructor) {
+  constructor(arr: arr) {
     this.arr = arr
   }
 }
 
-const types: {[type: string]: Type} = {}
-types.int8 = types.i8 = types.char = new Type(Int8Array)
-types.uint8 = types.u8 = types.uchar = new Type(Uint8Array)
-types.int16 = types.i16 = types.short = new Type(Int16Array)
-types.uint16 = types.u16 = types.ushort = new Type(Uint16Array)
-types.int32 = types.i32 = types.int = new Type(Int32Array)
-types.uint32 = types.u32 = types.uint = new Type(Uint32Array)
-types.float32 = types.f32 = types.float = new Type(Float32Array)
-types.float64 = types.f64 = types.double = new Type(Float64Array)
-types.int64 = types.bigint64 = types.i64 = types.long = new Type(BigInt64Array)
-types.uint64 = types.biguint64 = types.u64 = types.ulong = new Type(BigUint64Array)
+const types = {
+  int8: new Type(Int8Array), i8: new Type(Int8Array), char: new Type(Int8Array),
+  uint8: new Type(Uint8Array), u8: new Type(Uint8Array), uchar: new Type(Uint8Array),
+  int16: new Type(Int16Array), i16: new Type(Int16Array), short: new Type(Int16Array),
+  uint16: new Type(Uint16Array), u16: new Type(Uint16Array), ushort: new Type(Uint16Array),
+  int32: new Type(Int32Array), i32: new Type(Int32Array), int: new Type(Int32Array),
+  uint32: new Type(Uint32Array), u32: new Type(Uint32Array), uint: new Type(Uint32Array),
+  float32: new Type(Float32Array), f32: new Type(Float32Array), float: new Type(Float32Array),
+  float64: new Type(Float64Array), f64: new Type(Float64Array), double: new Type(Float64Array),
+  int64: new Type(BigInt64Array), bigint64: new Type(BigInt64Array), i64: new Type(BigInt64Array), long: new Type(BigInt64Array),
+  uint64: new Type(BigUint64Array), biguint64: new Type(BigUint64Array), u64: new Type(BigUint64Array), ulong: new Type(BigUint64Array),
+}
 
-const reverseTypes: Map<TypedArrayConstructor, string> = new Map()
+type typeName = keyof typeof types
+
+const reverseTypes: Map<TypedArrayConstructor, typeName> = new Map()
 for(let i in types) {
-  reverseTypes.set(types[i].arr, i)
+  const j = i as typeName
+  reverseTypes.set(types[j].arr, j)
 }
 
 // Components
@@ -46,7 +50,7 @@ function processTreeFactory<InputLeafType, OutputLeafType>( // Curry!
 
 type ComponentDef = Tree<Type>
 type ComponentArray = Tree<TypedArray>
-type FieldArray = [string, number[], (number | string)[]]
+type FieldArray = [typeName, number[], (number | string)[]]
 type ComponentJSON = Tree<FieldArray>
 
 function encodeArr(arr: TypedArray) {
