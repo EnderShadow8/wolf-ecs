@@ -144,10 +144,6 @@ class Archetype {
       }
     }
   }
-
-  getEntities() { // Slow
-    return this.entities.slice()
-  }
 }
 
 class ECS {
