@@ -1,5 +1,24 @@
 # System
-In WolfECS, systems are plain functions defined by the user. However, there are a couple of pitfalls to avoid:
+In WolfECS, systems are usually defined using the `defineSystem` function.
+
+## `defineSystem`
+Defines a system.
+
+### Parameters
+| Name | Type | Description |
+| - | - | - |
+| `query`| `Query` | Query to be iterated over.
+| `func` | `(number) => void` | Function called for each entity. |
+
+### Returns
+`this`
+
+### Example usage
+```js
+ecs.defineComponent("foo", {foo: types.i32, bar: types.f32})
+```
+
+For a small (~10%) performance boost, systems can also be functions directly written by the user. However, there are a couple of pitfalls to avoid:
 - When iterating over a query's entities, you must use a double for loop:
   - An outer loop to loop over a query's archetypes
   - An inner loop to loop over an archetype's entities
