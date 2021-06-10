@@ -151,7 +151,7 @@ class ECS {
   components: {[name: string]: ComponentArray} = {}
   MAX_ENTITIES: number = 1e4
 
-  constructor(max: number)
+  constructor(max?: number)
   constructor(serialised: object | string)
   constructor(arg: any) {
     if(typeof arg === "number") {
