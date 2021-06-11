@@ -11,11 +11,11 @@
   "types": "wolf-ecs.d.ts",
   "type": "module",
   "scripts": {
-    "test": "c8 mocha",
+    "test": "c8 --all --include build mocha --experimental-specifier-resolution=node",
     "pub": "npm run build && (cp package.json README.md dist; cd dist; npm publish && (cd ../; npm run gh-release))",
     "gh-release": "gh release create $(git describe --tags --abbrev=0) dist/*.js dist/*.d.ts -n \"\"",
     "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -cm --no-annotations",
-    "build": "rm -rf build dist; tsc; rollup -c; npm run min; npm run test"
+    "build": "rm -rf build dist; tsc; npm run test; rollup -c; npm run min"
   },
   "repository": {
     "type": "git",
