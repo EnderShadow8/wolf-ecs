@@ -59,13 +59,13 @@ describe("ECS", function() {
       for(let i = 0; i < 32; i++) {
         ecs.defineComponent(i.toString())
       }
-      const has = ecs.createQuery("cmp").mask[0]
-      const not = ecs.createQuery("!cmp").mask[1]
+      const has = ecs.createQuery("cmp").mask[0][0]
+      const not = ecs.createQuery("!cmp").mask[0][1]
       const query = ecs.createQuery("31")
       expect(has[0]).to.equal(1)
       expect(not[0]).to.equal(1)
-      expect(query.mask[0][0]).to.equal(0)
-      expect(query.mask[0][1]).to.equal(1)
+      expect(query.mask[0][0][0]).to.equal(0)
+      expect(query.mask[0][0][1]).to.equal(1)
     })
 
     it("should have correct existing archetypes", function() {

@@ -1,6 +1,6 @@
 import {Type, TypedArray} from "./types"
 import {encodeArr, decodeArr, FieldArray} from "./stringify"
-import {Query} from "./query"
+import {Query, PartialQueryMask} from "./query"
 import {Archetype} from "./archetype"
 
 type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
@@ -119,14 +119,13 @@ class ECS {
     this._arch.set(this._empty.mask.toString(), this._empty)
   }
 
-  createQuery(...types: string[]): Query {
-    if(!types.length) {
+  createQuery(...cmps: string[]): Query {
+    if(!cmps.length) {
       throw new Error("Query cannot be empty")
     }
-    const has = types.filter(c => c[0] !== "!")
-    const not = types.filter(c => c[0] === "!").map(c => c.slice(1))
-    const hasq = this._crMask()
-    const notq = this._crMask()
+    const or = cmps.filter(c => c.includes(" ")).map(i => i.split(" "))
+    cmps = cmps.filter(c => !c.includes(" "))
+
     const updateMask = (cmps: string[], mask: Uint32Array) => {
       cmps.forEach(c => {
         const i = this._dex[c]
@@ -136,9 +135,16 @@ class ECS {
         mask[Math.floor(i / 32)] |= 1 << i % 32
       })
     }
-    updateMask(has, hasq)
-    updateMask(not, notq)
-    const query = new Query([hasq, notq])
+    const query = new Query([cmps, ...or].map(i => {
+      const parsed = [
+        i.filter(c => c[0] !== "!"),
+        i.filter(c => c[0] === "!").map(c => c.slice(1))
+      ]
+      const q: PartialQueryMask = [this._crMask(), this._crMask()]
+      updateMask(parsed[0], q[0])
+      updateMask(parsed[1], q[1])
+      return q
+    }))
     this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.archetypes.push(i)}})
     this._queries.push(query)
     return query
