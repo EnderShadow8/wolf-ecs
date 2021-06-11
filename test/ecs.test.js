@@ -1,7 +1,10 @@
-import {ECS, types} from "../dist/wolf-ecs.js"
 import {expect} from "chai"
 
+import {ECS} from "../build/ecs"
+import {types} from "../build/types"
 let ecs = new ECS()
+
+// TODO: Refactor tests
 
 describe("ECS", function() {
   beforeEach(function() {
@@ -172,7 +175,7 @@ describe("ECS", function() {
   })
 
   describe("serialise / deserialise", function() {
-    for(let i = 0; i < 5; i++) {
+    for(let i = 0; i < 3; i++) {
       it(`should produce effectively equal output (run #${i + 1})`, function() {
         ecs = new ECS(1000)
         ecs.defineComponent("cmp1")
