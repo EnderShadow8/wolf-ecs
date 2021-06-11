@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "esnext",
     "rootDir": "src",
-    "outDir": "dist",
-    "declarationDir": "dist",
+    "outDir": "build",
+    "declarationDir": "build",
     "declaration": true,
     "newLine": "crlf",
     "noImplicitAny": true,
