@@ -19,6 +19,7 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 ### Possible future features
 - Multithreading
 - True archetypes (for cache locality)
+- Distributed (as opposed to centralised) architecture
 - [Finite state machine support](https://ajmmertens.medium.com/why-storing-state-machines-in-ecs-is-a-bad-idea-742de7a18e59) (Sander Mertens)
 
 ## Installation
