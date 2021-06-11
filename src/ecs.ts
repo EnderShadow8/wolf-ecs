@@ -1,7 +1,7 @@
 import {Type, TypedArray} from "./types"
 import {encodeArr, decodeArr, FieldArray} from "./stringify"
-import Query from "./query"
-import Archetype from "./archetype"
+import {Query} from "./query"
+import {Archetype} from "./archetype"
 
 type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
 

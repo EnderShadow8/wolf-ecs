@@ -30,4 +30,4 @@ class Archetype {
   }
 }
 
-export default Archetype
+export {Archetype}

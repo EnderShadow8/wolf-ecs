@@ -1,4 +1,4 @@
-import Archetype from "./archetype"
+import {Archetype} from "./archetype"
 
 type QueryMask = [Uint32Array, Uint32Array]
 
@@ -25,4 +25,4 @@ class Query {
   }
 }
 
-export default Query
+export {Query}

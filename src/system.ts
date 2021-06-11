@@ -1,4 +1,4 @@
-import Query from "./query"
+import {Query} from "./query"
 
 function defineSystem(query: Query, func: (id: number) => void) {
   return function() {
