@@ -36,14 +36,14 @@ Alternatively, download the [latest release](https://github.com/EnderShadow8/wol
 ### Using a CDN
 JSDelivr:
 ```js
-import { ECS, types } from "https://esm.run/wolf-ecs/wolf-ecs.js"
+import { ECS, types, defineSystem } from "https://esm.run/wolf-ecs/wolf-ecs.js"
 ```
 
 ## Usage
 Find detailed documentation [here](docs/docs.md).
 
 ```js
-import { ECS, types } from "wolf-ecs"
+import { ECS, types, defineSystem } from "wolf-ecs"
 
 // Create ECS object
 const ecs = new ECS()
@@ -59,19 +59,10 @@ ecs.defineComponent("velocity", vector)
 const moveQuery = ecs.createQuery("position", "velocity")
 
 // Define a system
-function moveSystem() {
-  // Get relevant components
-  const position = ecs.components.position
-  const velocity = ecs.components.velocity
-
-  // Iterate over all entities that match a query
-  for(let archetype of moveQuery.archetypes) {
-    for(let entity of archetype.entities) {
-      position.x[entity] += velocity.x[entity]
-      position.y[entity] += velocity.y[entity]
-    }
-  }
-}
+moveSystem = defineSystem(moveQuery, entity => {
+  ecs.components.position.x[entity] += ecs.components.velocity.x[entity]
+  ecs.components.position.y[entity] += ecs.components.velocity.y[entity]
+}) {
 
 // Create an entity
 const entity = ecs.createEntity()
