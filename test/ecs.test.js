@@ -1,7 +1,8 @@
 import {expect} from "chai"
 
-import {ECS} from "../build/ecs"
-import {types} from "../build/types"
+import {ECS, types} from "../build/index"
+import {Query} from "../build/query"
+
 let ecs = new ECS()
 
 // TODO: Refactor tests
@@ -59,16 +60,12 @@ describe("ECS", function() {
       for(let i = 0; i < 32; i++) {
         ecs.defineComponent(i.toString())
       }
-      const has = ecs.createQuery("cmp").mask[0][0]
-      const not = ecs.createQuery("!cmp").mask[0][1]
-      const query = ecs.createQuery("31")
-      expect(has[0]).to.equal(1)
-      expect(not[0]).to.equal(1)
-      expect(query.mask[0][0][0]).to.equal(0)
-      expect(query.mask[0][0][1]).to.equal(1)
+      expect(ecs.createQuery("cmp")).to.eql(new Query([[[0], []]]))
+      expect(ecs.createQuery("!cmp")).to.eql(new Query([[[], [0]]]))
+      expect(ecs.createQuery("31")).to.eql(new Query([[[32], []]]))
     })
 
-    it("should have correct existing archetypes", function() {
+    it("should have existing archetypes", function() {
       ecs.defineComponent("cmp")
       const id = ecs.createEntity()
       ecs.addComponent(id, "cmp")
