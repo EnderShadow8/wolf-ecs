@@ -7,8 +7,19 @@ class Query {
   mask: QueryMask
   archetypes: Archetype[] = []
 
-  constructor(mask: QueryMask) {
-    this.mask = mask
+  constructor(q: [number[], number[]][]) {
+    const updateMask = (cmps: number[], mask: Uint32Array) => {
+      cmps.forEach(i => {
+        mask[Math.floor(i / 32)] |= 1 << i % 32
+      })
+    }
+    this.mask = []
+    q.map((n, i) => {
+      const crMask = (x: number) => new Uint32Array(Math.ceil((Math.max(0, ...n[x]) + 1) / 32))
+      this.mask.push([crMask(0), crMask(1)])
+      updateMask(n[0], this.mask[i][0])
+      updateMask(n[1], this.mask[i][1])
+    })
   }
 
   static match(target: Uint32Array, query: QueryMask) {

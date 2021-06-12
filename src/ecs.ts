@@ -1,6 +1,6 @@
 import {Type, TypedArray} from "./types"
 import {encodeArr, decodeArr, FieldArray} from "./stringify"
-import {Query, PartialQueryMask} from "./query"
+import {Query} from "./query"
 import {Archetype} from "./archetype"
 
 type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
@@ -94,10 +94,10 @@ class ECS {
 
   defineComponent(name: string, def: ComponentDef = {}) {
     if(this.entID) {
-      throw new Error("Components can only be defined before entities are created")
+      throw new Error("cannot define component after entity creation")
     }
     if(name in this.components) {
-      throw new Error("Duplicate component names")
+      throw new Error("duplicate component names")
     }
     if(/^[\w-]+$/.test(name)) {
       this.components[name] = processTreeFactory(
@@ -107,43 +107,29 @@ class ECS {
       this._dex[name] = this.cmpID++
       return this
     }
-    throw new Error("Invalid component name: component names can only contain alphanumeric characters, underscores and hyphens.")
-  }
-
-  protected _crMask() {
-    return new Uint32Array(Math.ceil(this.cmpID / 32))
+    throw new Error("invalid component name")
   }
 
   protected _initEmpty() {
-    this._empty.mask = this._crMask()
+    this._empty.mask = new Uint32Array(Math.ceil(this.cmpID / 32))
     this._arch.set(this._empty.mask.toString(), this._empty)
   }
 
   createQuery(...cmps: string[]): Query {
     if(!cmps.length) {
-      throw new Error("Query cannot be empty")
+      throw new Error("empty query")
     }
     const or = cmps.filter(c => c.includes(" ")).map(i => i.split(" "))
     cmps = cmps.filter(c => !c.includes(" "))
-
-    const updateMask = (cmps: string[], mask: Uint32Array) => {
-      cmps.forEach(c => {
-        const i = this._dex[c]
-        if(i === undefined) {
-          throw new Error("Invalid component name")
-        }
-        mask[Math.floor(i / 32)] |= 1 << i % 32
-      })
-    }
     const query = new Query([cmps, ...or].map(i => {
-      const parsed = [
-        i.filter(c => c[0] !== "!"),
-        i.filter(c => c[0] === "!").map(c => c.slice(1))
+      const p: [(number | undefined)[], (number | undefined)[]] = [
+        i.filter(c => c[0] !== "!").map(c => this._dex[c]),
+        i.filter(c => c[0] === "!").map(c => this._dex[c.slice(1)])
       ]
-      const q: PartialQueryMask = [this._crMask(), this._crMask()]
-      updateMask(parsed[0], q[0])
-      updateMask(parsed[1], q[1])
-      return q
+      if(p.map(i => i.includes(undefined)).includes(true)) {
+        throw new Error("invalid component name")
+      }
+      return p as [number[], number[]]
     }))
     this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.archetypes.push(i)}})
     this._queries.push(query)
@@ -165,7 +151,7 @@ class ECS {
 
   protected _hasComponent(mask: Uint32Array, i: number) {
     if(i === undefined) {
-      throw new Error("Invalid component name")
+      throw new Error("invalid component name")
     }
     return mask[Math.floor(i / 32)] & (1 << i % 32)
   }
