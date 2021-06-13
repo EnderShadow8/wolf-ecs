@@ -17,6 +17,7 @@ Huge thanks to [NateTheGreatt](https://github.com/NateTheGreatt)'s [BitECS](http
 - *[It's by far the fastest JS/TS ECS framework that I know of](https://github.com/noctjs/ecs-benchmark).*
 
 ### Possible future features
+- Hierachies
 - Multithreading
 - True archetypes (for cache locality)
 - Distributed (as opposed to centralised) architecture
