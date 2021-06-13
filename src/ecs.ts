@@ -157,6 +157,9 @@ class ECS {
   }
 
   protected _archChange(id: number, i: number) {
+    if(this._rmkeys[id] || this.entID <= id) {
+      throw new Error("invalid entity id")
+    }
     const arch = this._ent[id]
     arch.remove(id)
     if(!arch.change[i]) {
