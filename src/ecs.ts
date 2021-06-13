@@ -2,6 +2,7 @@ import {Type, TypedArray} from "./types"
 import {encodeArr, decodeArr, FieldArray} from "./stringify"
 import {Query} from "./query"
 import {Archetype} from "./archetype"
+import {add, remove} from "./sparseset"
 
 type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
 
@@ -62,7 +63,7 @@ class ECS {
       for(let i = 0; i < arg._ent.length; i++) {
         if(arg._ent[i] !== 0) {
           this._ent[i] = this._getArch(new Uint32Array(arg._ent[i]))
-          this._ent[i].add(i)
+          add(this._ent[i].keys, this._ent[i].entities, i)
         }
       }
       for(let i in arg.components) {
@@ -136,6 +137,12 @@ class ECS {
     return query
   }
 
+  protected _validateID(id: number) {
+    if(this._rmkeys[id] || this.entID <= id) {
+      throw new Error("invalid entity id")
+    }
+  }
+
   protected _getArch(mask: Uint32Array) {
     if(!this._arch.has(mask.toString())) {
       const arch = new Archetype(mask.slice())
@@ -157,11 +164,9 @@ class ECS {
   }
 
   protected _archChange(id: number, i: number) {
-    if(this._rmkeys[id] || this.entID <= id) {
-      throw new Error("invalid entity id")
-    }
+    this._validateID(id)
     const arch = this._ent[id]
-    arch.remove(id)
+    remove(arch.keys, arch.entities, id)
     if(!arch.change[i]) {
       if(this._hasComponent(arch.mask, i)) {
         arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
@@ -174,12 +179,12 @@ class ECS {
       }
     }
     this._ent[id] = arch.change[i]
-    this._ent[id].add(id)
+    add(this._ent[id].keys, this._ent[id].entities, id)
   }
 
   protected _crEnt(id: number) {
     this._ent[id] = this._empty
-    this._empty.add(id)
+    add(this._empty.keys, this._empty.entities, id)
   }
 
   createEntity(): number {
@@ -199,7 +204,7 @@ class ECS {
 
   destroyEntity(id: number) {
     if(id < this.entID && !this._rmkeys[id]) {
-      this._ent[id].remove(id)
+      remove(this._ent[id].keys, this._ent[id].entities, id)
       this._rm.push(id)
       this._rmkeys[id] = true
     }
