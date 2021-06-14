@@ -32,6 +32,8 @@ class ECS {
   protected _dex: {[cmp: string]: number} = {}
   protected _ent: Archetype[] = []
   protected _queries: Query[] = []
+  protected _destroy: number[] = []
+  protected _destroykeys: number[] = []
   protected _rm: number[] = []
   protected _rmkeys: boolean[] = []
   protected _empty: Archetype = new Archetype(new Uint32Array())
@@ -202,12 +204,23 @@ class ECS {
     }
   }
 
-  destroyEntity(id: number) {
-    if(id < this.entID && !this._rmkeys[id]) {
+  destroyEntity(id: number, defer: boolean = false) {
+    this._validateID(id)
+    if(defer) {
+      add(this._destroykeys, this._destroy, id)
+    } else {
       remove(this._ent[id].keys, this._ent[id].entities, id)
+      remove(this._destroykeys, this._destroy, id)
       this._rm.push(id)
       this._rmkeys[id] = true
     }
+  }
+
+  destroyPending() {
+    for(;this._destroy.length > 0;) {
+      this.destroyEntity(this._destroy[0])
+    }
+    this._destroykeys = []
   }
 
   addComponent(id: number, cmp: string) {

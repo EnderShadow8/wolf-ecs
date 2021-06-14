@@ -1,6 +1,6 @@
 import {Query} from "./query"
 
-function defineSystem(query: Query, func: (id: number) => void) {
+function defineSystem(query: Query, func: (id: number) => void, cleanup?: () => void) {
   return function() {
     for(let i = 0, l = query.archetypes.length; i < l; i++) {
       const ent = query.archetypes[i].entities
@@ -8,6 +8,7 @@ function defineSystem(query: Query, func: (id: number) => void) {
         func(ent[j - 1])
       }
     }
+    cleanup?.()
   }
 }
 

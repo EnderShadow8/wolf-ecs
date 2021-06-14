@@ -149,6 +149,18 @@ describe("ECS", function() {
       ecs.createEntity()
       expect(ecs._empty).to.equal(ecs._arch.get("0,0"))
     })
+
+    it("should defer deletion", function() {
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.createEntity()
+      expect(ecs._rm).to.eql([])
+      ecs.destroyEntity(0, true)
+      ecs.destroyEntity(2, true)
+      expect(ecs._rm).to.eql([])
+      ecs.destroyPending()
+      expect(ecs._rm).to.have.members([0, 2])
+    })
   })
 
   describe("addComponent / removeComponent", function() {
