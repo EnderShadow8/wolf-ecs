@@ -1,13 +1,30 @@
 import {expect} from "chai"
 
-import {Archetype} from "../build/archetype.js"
+import {has, add, remove} from "../build/sparseset"
 
-let arch = new Archetype(new Uint32Array())
+class SparseSet {
+  sparse = []
+  packed = []
+
+  has(x) {
+    return has(this.sparse, this.packed, x)
+  }
+
+  add(x) {
+    add(this.sparse, this.packed, x)
+  }
+
+  remove(x) {
+    remove(this.sparse, this.packed, x)
+  }
+}
+
+let sset = new SparseSet()
 let set = new Set() // Ground truth
 
-describe("Archetype", function() {
+describe("SparseSet", function() {
   beforeEach(function() {
-    arch = new Archetype(new Uint32Array())
+    sset = new SparseSet()
     set.clear()
   })
 
@@ -16,17 +33,17 @@ describe("Archetype", function() {
       for(let i = 0; i < 1000; i++) {
         if(Math.random() > 0.5) {
           const n = Math.floor(Math.random() * 100)
-          arch.add(n)
+          sset.add(n)
           set.add(n)
         } else {
           const n = Math.floor(Math.random() * 100)
-          arch.remove(n)
+          sset.remove(n)
           set.delete(n)
         }
       }
-      expect(arch.entities).to.have.members(Array.from(set))
+      expect(sset.packed).to.have.members(Array.from(set))
       for(let i = 0; i < 100; i++) {
-        expect(arch.has(i)).to.equal(set.has(i))
+        expect(sset.has(i)).to.equal(set.has(i))
       }
     })
   }
