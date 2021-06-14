@@ -87,6 +87,26 @@ describe("ECS", function() {
     })
   })
 
+  describe("_validateID", function() {
+    it("shouldn't throw on valid ID", function() {
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.destroyEntity(1)
+      ecs._validateID(0)
+      ecs._validateID(2)
+    })
+
+    it("should throw on invalid ID", function() {
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.destroyEntity(1)
+      expect(() => {ecs._validateID(1)}).to.throw()
+      expect(() => {ecs._validateID(3)}).to.throw()
+    })
+  })
+
   describe("createEntity / destroyEntity", function() {
     it("should aloocate and recycle IDs", function() {
       const id1 = ecs.createEntity()
