@@ -34,6 +34,7 @@ class ECS {
   protected _queries: Query[] = []
   protected _destroy: number[] = []
   protected _destroykeys: number[] = []
+  protected _mcmp: {addrm: boolean[], ent: number[], cmp: number[]} = {addrm: [], ent: [], cmp: []}
   protected _rm: number[] = []
   protected _rmkeys: boolean[] = []
   protected _empty: Archetype = new Archetype(new Uint32Array())
@@ -223,20 +224,53 @@ class ECS {
     this._destroykeys = []
   }
 
-  addComponent(id: number, cmp: string) {
+  protected _addcmp(id: number, cmp: number) {
+    if(!this._hasComponent(this._ent[id].mask, cmp)) {
+      this._archChange(id, cmp)
+    }
+  }
+  
+  addComponent(id: number, cmp: string, defer: boolean = false) {
+    this._validateID(id)
     const i = this._dex[cmp]
-    if(!this._hasComponent(this._ent[id].mask, i)) {
-      this._archChange(id, i)
+    if(defer) {
+      this._mcmp.addrm.push(true)
+      this._mcmp.ent.push(id)
+      this._mcmp.cmp.push(i)
+    } else {
+      this._addcmp(id, i)
     }
     return this
   }
 
-  removeComponent(id: number, cmp: string) {
+  protected _rmcmp(id: number, cmp: number) {
+    if(this._hasComponent(this._ent[id].mask, cmp)) {
+      this._archChange(id, cmp)
+    }
+  }
+
+  removeComponent(id: number, cmp: string, defer: boolean = false) {
+    this._validateID(id)
     const i = this._dex[cmp]
-    if(this._hasComponent(this._ent[id].mask, i)) {
-      this._archChange(id, i)
+    if(defer) {
+      this._mcmp.addrm.push(false)
+      this._mcmp.ent.push(id)
+      this._mcmp.cmp.push(i)
+    } else {
+      this._rmcmp(id, i)
     }
     return this
+  }
+
+  updatePending() {
+    for(let i = this._mcmp.addrm.length - 1; i >= 0; i--) {
+      if(this._mcmp.addrm[i]) {
+        this._addcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
+      } else {
+        this._rmcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
+      }
+    }
+    this._mcmp = {addrm: [], ent: [], cmp: []}
   }
 }
 
