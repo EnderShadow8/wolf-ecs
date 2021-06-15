@@ -9,20 +9,20 @@ Defines a system.
 | - | - | - |
 | `query`| `Query` | Query to be iterated over.
 | `func` | `(number) => void` | Function called for each entity. |
+| `cleanup?` | `() => void` | Function called after system has finished executing. |
 
 ### Returns
 `this`
 
 ### Example usage
 ```js
-ecs.defineComponent("foo", {foo: types.i32, bar: types.f32})
+const query = ecs.createQuery("foo")
+const system = defineSystem(query, (id) => {
+  console.log(ecs.components.foo[id])
+}, () => {
+  console.log("done")
+})
 ```
-
-For a small (~10%) performance boost, systems can also be functions directly written by the user. However, there are a couple of pitfalls to avoid:
-- When iterating over a query's entities, you must use a double for loop:
-  - An outer loop to loop over a query's archetypes
-  - An inner loop to loop over an archetype's entities
-- If you are *adding components, removing components or destroying entities,* then you have to either iterate the array of entities *backwards* or *create a copy* of the array to iterate over. This is because modifying entities also modifies the array being iterated.
 
 ## Query
 A `Query` exists for the sole purpose of allowing systems to iterate over the correct entities.
