@@ -140,8 +140,12 @@ class ECS {
     return query
   }
 
+  protected _validID(id: number) {
+    return !(this._rmkeys[id] || this.entID <= id)
+  }
+  
   protected _validateID(id: number) {
-    if(this._rmkeys[id] || this.entID <= id) {
+    if(!this._validID(id)) {
       throw new Error("invalid entity id")
     }
   }
@@ -206,7 +210,6 @@ class ECS {
   }
 
   destroyEntity(id: number, defer: boolean = false) {
-    this._validateID(id)
     if(defer) {
       add(this._destroykeys, this._destroy, id)
     } else {
@@ -229,7 +232,7 @@ class ECS {
       this._archChange(id, cmp)
     }
   }
-  
+
   addComponent(id: number, cmp: string, defer: boolean = false) {
     this._validateID(id)
     const i = this._dex[cmp]
@@ -264,10 +267,12 @@ class ECS {
 
   updatePending() {
     for(let i = this._mcmp.addrm.length - 1; i >= 0; i--) {
-      if(this._mcmp.addrm[i]) {
-        this._addcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
-      } else {
-        this._rmcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
+      if(this._validID(this._mcmp.ent[i])) {
+        if(this._mcmp.addrm[i]) {
+          this._addcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
+        } else {
+          this._rmcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
+        }
       }
     }
     this._mcmp = {addrm: [], ent: [], cmp: []}
