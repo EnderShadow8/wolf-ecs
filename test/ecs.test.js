@@ -201,6 +201,24 @@ describe("ECS", function() {
       expect(() => ecs.addComponent(id, "wrong")).to.throw()
       expect(() => ecs.removeComponent(id, "wrong")).to.throw()
     })
+
+    it("should defer update", function() {
+      ecs.defineComponent("cmp")
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.createEntity()
+      ecs.addComponent(0, "cmp", true)
+      ecs.addComponent(1, "cmp", true)
+      expect(ecs._arch.size).to.equal(1)
+      ecs.updatePending()
+      expect(ecs._arch.size).to.equal(2)
+      ecs.removeComponent(0, "cmp", true)
+      ecs.removeComponent(2, "cmp", true)
+      expect(ecs._ent[0]).to.equal(ecs._arch.get("1"))
+      ecs.updatePending()
+      expect(ecs._ent[0]).to.equal(ecs._empty)
+      expect(ecs._ent[2]).to.equal(ecs._empty)
+    })
   })
 
   describe("serialise / deserialise", function() {
