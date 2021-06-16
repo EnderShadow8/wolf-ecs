@@ -1,6 +1,6 @@
 {
   "name": "wolf-ecs",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "An entity component system framework for JavaScript and TypeScript",
   "keywords": [
     "ecs",
