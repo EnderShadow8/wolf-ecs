@@ -200,6 +200,8 @@ describe("ECS", function() {
       const id = ecs.createEntity()
       expect(() => ecs.addComponent(id, "wrong")).to.throw()
       expect(() => ecs.removeComponent(id, "wrong")).to.throw()
+      expect(() => ecs.addComponent(id, "wrong", true)).to.throw()
+      expect(() => ecs.removeComponent(id, "wrong", false)).to.throw()
     })
 
     it("should defer update", function() {

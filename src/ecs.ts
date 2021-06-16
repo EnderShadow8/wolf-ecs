@@ -119,6 +119,12 @@ class ECS {
     this._arch.set(this._empty.mask.toString(), this._empty)
   }
 
+  protected _validateComponent(cmp: number | undefined) {
+    if(cmp === undefined) {
+      throw new Error("invalid component name")
+    }
+  }
+
   createQuery(...cmps: string[]): Query {
     if(!cmps.length) {
       throw new Error("empty query")
@@ -130,9 +136,7 @@ class ECS {
         i.filter(c => c[0] !== "!").map(c => this._dex[c]),
         i.filter(c => c[0] === "!").map(c => this._dex[c.slice(1)])
       ]
-      if(p.map(i => i.includes(undefined)).includes(true)) {
-        throw new Error("invalid component name")
-      }
+      p.forEach(q => q.forEach(i => this._validateComponent(i)))
       return p as [number[], number[]]
     }))
     this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.archetypes.push(i)}})
@@ -143,7 +147,7 @@ class ECS {
   protected _validID(id: number) {
     return !(this._rmkeys[id] || this.entID <= id)
   }
-  
+
   protected _validateID(id: number) {
     if(!this._validID(id)) {
       throw new Error("invalid entity id")
@@ -164,9 +168,6 @@ class ECS {
   }
 
   protected _hasComponent(mask: Uint32Array, i: number) {
-    if(i === undefined) {
-      throw new Error("invalid component name")
-    }
     return mask[Math.floor(i / 32)] & (1 << i % 32)
   }
 
@@ -236,6 +237,7 @@ class ECS {
   addComponent(id: number, cmp: string, defer: boolean = false) {
     this._validateID(id)
     const i = this._dex[cmp]
+    this._validateComponent(i)
     if(defer) {
       this._mcmp.addrm.push(true)
       this._mcmp.ent.push(id)
@@ -255,6 +257,7 @@ class ECS {
   removeComponent(id: number, cmp: string, defer: boolean = false) {
     this._validateID(id)
     const i = this._dex[cmp]
+    this._validateComponent(i)
     if(defer) {
       this._mcmp.addrm.push(false)
       this._mcmp.ent.push(id)
