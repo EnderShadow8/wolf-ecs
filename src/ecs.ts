@@ -205,6 +205,9 @@ class ECS {
       if(!this.entID) {
         this._initEmpty()
       }
+      if(this.entID === this.MAX_ENTITIES) {
+        throw new Error("maximum entity limit reached")
+      }
       this._crEnt(this.entID)
       return this.entID++
     }

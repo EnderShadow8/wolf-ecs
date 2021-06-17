@@ -102,8 +102,8 @@ describe("ECS", function() {
       ecs.createEntity()
       ecs.createEntity()
       ecs.destroyEntity(1)
-      expect(() => {ecs._validateID(1)}).to.throw()
-      expect(() => {ecs._validateID(3)}).to.throw()
+      expect(() => ecs._validateID(1)).to.throw()
+      expect(() => ecs._validateID(3)).to.throw()
     })
   })
 
@@ -160,6 +160,13 @@ describe("ECS", function() {
       expect(ecs._rm).to.eql([])
       ecs.destroyPending()
       expect(ecs._rm).to.have.members([0, 2])
+    })
+
+    it("should throw on max entity limit", function() {
+      for(let i = 0; i < ecs.MAX_ENTITIES; i++) {
+        ecs.createEntity()
+      }
+      expect(() => ecs.createEntity()).to.throw()
     })
   })
 
