@@ -12,10 +12,10 @@
   "type": "module",
   "scripts": {
     "test": "c8 --check-coverage --branches 100 --all --include build mocha --experimental-specifier-resolution=node",
-    "pub": "npm run build && (cp package.json README.md dist; cd dist; npm publish && (cd ../; npm run gh-release))",
+    "pub": "npm run build && (cd dist; npm publish && (cd ../; npm run gh-release))",
     "gh-release": "gh release create $(git describe --tags --abbrev=0) dist/*.js dist/*.d.ts -n \"\"",
     "min": "cd dist; uglifyjs wolf-ecs.js -o wolf-ecs.min.js -cm --no-annotations",
-    "build": "rm -rf build; tsc; npm run test && (rm -rf dist; rollup -c; npm run min)"
+    "build": "rm -rf build; tsc; npm run test && (rm -rf dist; rollup -c; npm run min; cp package.json README.md dist)"
   },
   "repository": {
     "type": "git",
