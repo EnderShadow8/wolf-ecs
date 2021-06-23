@@ -5,6 +5,7 @@ import {Query} from "../build/query"
 describe("Query", function() {
   describe("constructor", function() {
     it("should have appropriate mask", function() {
+      expect(new Query().mask).to.eql([])
       expect(new Query([[[3, 1, 4], [2, 6, 5]]]).mask).to.eql([[new Uint32Array([26]), new Uint32Array([100])]])
       expect(new Query([[[1, 2], [4]], [[0, 3, 5], []]]).mask).to.eql([
         [new Uint32Array([6]), new Uint32Array([16])],
@@ -14,6 +15,13 @@ describe("Query", function() {
   })
 
   describe("match", function() {
+    it("should match empty", function() {
+      const query = new Query().mask
+      for(let i = 0; i < 20; i++) {
+        expect(Query.match(new Uint32Array([Math.floor(Math.random() * 1000)]), query)).to.be.true
+      }
+    })
+
     it("should match AND", function() {
       const query = new Query([[[0, 2, 3], []]]).mask
       expect(Query.match(new Uint32Array([13]), query)).to.be.true

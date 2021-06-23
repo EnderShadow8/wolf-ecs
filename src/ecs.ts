@@ -126,9 +126,6 @@ class ECS {
   }
 
   createQuery(...cmps: string[]): Query {
-    if(!cmps.length) {
-      throw new Error("empty query")
-    }
     const or = cmps.filter(c => c.includes(" ")).map(i => i.split(" "))
     cmps = cmps.filter(c => !c.includes(" "))
     const query = new Query([cmps, ...or].map(i => {

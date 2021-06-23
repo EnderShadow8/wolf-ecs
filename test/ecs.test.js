@@ -77,10 +77,6 @@ describe("ECS", function() {
       expect(not.archetypes).to.eql([ecs._arch.get("0")])
     })
 
-    it("should throw error on no arguments", function() {
-      expect(() => ecs.createQuery()).to.throw()
-    })
-
     it("should throw error on invalid name", function() {
       ecs.defineComponent("right")
       expect(() => ecs.createQuery("wrong")).to.throw()
