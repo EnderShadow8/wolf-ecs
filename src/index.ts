@@ -1,3 +1,3 @@
 export * from "./ecs"
-export * from "./system"
-export {types, TypedArray} from "./types"
+export {types, TypedArray, TypedArrayConstructor, Tree, ComponentArray} from "./component"
+export {all, not, any} from "./query"

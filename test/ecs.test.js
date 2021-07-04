@@ -1,11 +1,10 @@
 import {expect} from "chai"
 
-import {ECS, types} from "../build/index"
+import {ECS, types, all, not, any} from "../build/index"
+import {_componentData} from "../build/component"
 import {Query} from "../build/query"
 
 let ecs = new ECS()
-
-// TODO: Refactor tests
 
 describe("ECS", function() {
   beforeEach(function() {
@@ -19,87 +18,90 @@ describe("ECS", function() {
 
   describe("defineComponent", function() {
     it("should initialise component pools as defined", function() {
-      ecs.defineComponent("u16", types.u16)
-      ecs.defineComponent("compound", {f32: types.f32, more: {f64: types.f64}})
-      ecs.defineComponent("empty")
-      expect(ecs.components.u16).to.be.instanceof(Uint16Array)
-      expect(ecs.components.compound.f32).to.be.instanceof(Float32Array)
-      expect(ecs.components.compound.more.f64).to.be.instanceof(Float64Array)
-      expect(ecs.components.empty).to.eql({})
+      const single = ecs.defineComponent(types.u16)
+      const compound = ecs.defineComponent({f32: types.f32, more: {f64: types.f64}})
+      const custom = ecs.defineComponent({custom: types.custom(), init: types.custom(() => 123), any: types.any})
+      const empty = ecs.defineComponent()
+      expect(single).to.eql(new Uint16Array(ecs.MAX_ENTITIES))
+      expect(compound.f32).to.eql(new Float32Array(ecs.MAX_ENTITIES))
+      expect(compound.more.f64).to.eql(new Float64Array(ecs.MAX_ENTITIES))
+      expect(custom.custom).to.be.instanceof(Array)
+      expect(custom.init).to.eql(new Array(10000).fill(123))
+      expect(custom.any).to.be.instanceof(Array)
+      expect(empty).to.eql({})
     })
 
     it("should increment counters", function() {
-      ecs.defineComponent("cmp")
-      ecs.defineComponent("cmp2", types.f32)
-      expect(ecs._dex.cmp).to.equal(0)
-      expect(ecs._dex.cmp2).to.equal(1)
+      const cmp = ecs.defineComponent()
+      expect(cmp[_componentData].id).to.equal(0)
+      expect(ecs.cmpID).to.equal(1)
+      const cmp2 = ecs.defineComponent(types.f32)
+      expect(cmp2[_componentData].id).to.equal(1)
+      expect(ecs.cmpID).to.equal(2)
     })
 
     it("should throw error if entity already created", function() {
       ecs.createEntity()
-      expect(() => ecs.defineComponent("wrong", types.u32)).to.throw()
-    })
-
-    it("should throw error on duplicate names", function() {
-      ecs.defineComponent("wrong", types.u32)
-      expect(() => ecs.defineComponent("wrong", types.u32)).to.throw()
-    })
-
-    it("should throw error on invalid names", function() {
-      expect(() => ecs.defineComponent("", types.u32)).to.throw()
-      expect(() => ecs.defineComponent("!")).to.throw()
-      expect(() => ecs.defineComponent("a s d f")).to.throw()
-      expect(() => ecs.defineComponent("k!k")).to.throw()
-      expect(() => ecs.defineComponent("#$%^&*()")).to.throw()
+      expect(() => ecs.defineComponent()).to.throw()
     })
   })
 
-  describe("createQuery", function() {
-    it("should return a query with correct mask", function() {
-      ecs.defineComponent("cmp")
+  describe("createQuery", function() { // TODO
+    it("should return a query equivalent to new Query", function() {
+      const cmp = ecs.defineComponent()
+      const cmps = []
       for(let i = 0; i < 32; i++) {
-        ecs.defineComponent(i.toString())
+        cmps.push(ecs.defineComponent())
       }
-      expect(ecs.createQuery("cmp")).to.eql(new Query([[[0], []]]))
-      expect(ecs.createQuery("!cmp")).to.eql(new Query([[[], [0]]]))
-      expect(ecs.createQuery("31")).to.eql(new Query([[[32], []]]))
+      expect(ecs.createQuery(cmp)).to.eql(new Query(ecs, all(cmp)))
+      expect(ecs.createQuery(not(cmp))).to.eql(new Query(ecs, all(not(cmp))))
+      expect(ecs.createQuery(cmps[31])).to.eql(new Query(ecs, all(cmps[31])))
     })
 
     it("should have existing archetypes", function() {
-      ecs.defineComponent("cmp")
+      const cmp = ecs.defineComponent()
       const id = ecs.createEntity()
-      ecs.addComponent(id, "cmp")
+      ecs.addComponent(id, cmp)
 
-      const has = ecs.createQuery("cmp")
-      const not = ecs.createQuery("!cmp")
+      const hasq = ecs.createQuery(cmp)
+      const notq = ecs.createQuery(not(cmp))
 
-      expect(has.archetypes).to.eql([ecs._arch.get("1")])
-      expect(not.archetypes).to.eql([ecs._arch.get("0")])
+      expect(hasq.archetypes).to.eql([ecs._arch.get("1")])
+      expect(notq.archetypes).to.eql([ecs._arch.get("0")])
     })
 
-    it("should throw error on invalid name", function() {
-      ecs.defineComponent("right")
-      expect(() => ecs.createQuery("wrong")).to.throw()
+    it("should throw error on invalid component", function() {
+      expect(() => ecs.createQuery(123)).to.throw()
+      expect(() => ecs.createQuery(123)).to.throw()
+      expect(() => ecs.createQuery("abc")).to.throw()
+      expect(() => ecs.createQuery(undefined)).to.throw()
+      expect(() => ecs.createQuery({})).to.throw()
+    })
+
+    it("should throw error on other ecs component", function() {
+      const ecs2 = new ECS()
+      const cmp2 = ecs2.defineComponent()
+      expect(() => ecs.createQuery(cmp2)).to.throw()
     })
   })
 
-  describe("_validateID", function() {
-    it("shouldn't throw on valid ID", function() {
+  describe("_validID", function() {
+    it("should return true on valid ID", function() {
       ecs.createEntity()
       ecs.createEntity()
       ecs.createEntity()
       ecs.destroyEntity(1)
-      ecs._validateID(0)
-      ecs._validateID(2)
+      expect(ecs._validID(0)).to.be.true
+      expect(ecs._validID(2)).to.be.true
     })
 
-    it("should throw on invalid ID", function() {
+    it("should return false on invalid ID", function() {
       ecs.createEntity()
       ecs.createEntity()
       ecs.createEntity()
       ecs.destroyEntity(1)
-      expect(() => ecs._validateID(1)).to.throw()
-      expect(() => ecs._validateID(3)).to.throw()
+      expect(ecs._validID(1)).to.be.false
+      expect(ecs._validID(3)).to.be.false
     })
   })
 
@@ -118,13 +120,13 @@ describe("ECS", function() {
     })
 
     it("should update archetypes", function() {
-      ecs.defineComponent("cmp")
+      const cmp = ecs.defineComponent()
       const id1 = ecs.createEntity()
       expect(ecs._empty).to.equal(ecs._arch.get("0"))
       const id2 = ecs.createEntity()
       expect(ecs._empty.has(id1)).to.be.true
       expect(ecs._empty.has(id2)).to.be.true
-      ecs.addComponent(id1, "cmp")
+      ecs.addComponent(id1, cmp)
       ecs.destroyEntity(id1)
       ecs.destroyEntity(id2)
       expect(ecs._empty.has(id1)).to.be.false
@@ -133,14 +135,14 @@ describe("ECS", function() {
     })
 
     it("should set _empty to the empty archetype", function() {
-      ecs.defineComponent("cmp")
+      ecs.defineComponent()
       ecs.createEntity()
       expect(ecs._empty).to.equal(ecs._arch.get("0"))
     })
 
     it("should set _empty to the empty archetype (n > 32)", function() {
       for(let i = 0; i < 40; i++) {
-        ecs.defineComponent(i.toString())
+        ecs.defineComponent()
       }
       ecs.createEntity()
       expect(ecs._empty).to.equal(ecs._arch.get("0,0"))
@@ -172,117 +174,66 @@ describe("ECS", function() {
         return arch.map(i => ecs._arch.get(i))
       }
 
-      ecs.defineComponent("cmp1")
-      ecs.defineComponent("cmp2")
+      const cmp1 = ecs.defineComponent()
+      const cmp2 = ecs.defineComponent()
       const id = ecs.createEntity()
-      const q1 = ecs.createQuery("cmp1")
-      const q2 = ecs.createQuery("cmp1", "!cmp2")
+      const q1 = ecs.createQuery(cmp1)
+      const q2 = ecs.createQuery(cmp1, not(cmp2))
 
-      ecs.addComponent(id, "cmp1")
+      ecs.addComponent(id, cmp1)
       expect(ecs._arch.get("0").has(id)).to.be.false
       expect(ecs._arch.get("1").has(id)).to.be.true
       expect(q1.archetypes).to.have.members(arches("1"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
-      ecs.addComponent(id, "cmp2")
+      ecs.addComponent(id, cmp2)
       expect(arches("0", "1").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("3").has(id)).to.be.true
 
-      ecs.removeComponent(id, "cmp1")
+      ecs.removeComponent(id, cmp1)
       expect(arches("0", "1", "3").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("2").has(id)).to.be.true
       expect(q1.archetypes).to.have.members(arches("1", "3"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
-      ecs.removeComponent(id, "cmp2")
+      ecs.removeComponent(id, cmp2)
       expect(arches("1", "2", "3").map(i => i.has(id))).to.not.include(true)
       expect(ecs._arch.get("0").has(id)).to.be.true
     })
 
-    it("should throw error on invalid name", function() {
+    it("should throw error on invalid component", function() {
       const id = ecs.createEntity()
-      expect(() => ecs.addComponent(id, "wrong")).to.throw()
-      expect(() => ecs.removeComponent(id, "wrong")).to.throw()
-      expect(() => ecs.addComponent(id, "wrong", true)).to.throw()
-      expect(() => ecs.removeComponent(id, "wrong", false)).to.throw()
+      expect(() => ecs.addComponent(id, 123)).to.throw()
+      expect(() => ecs.removeComponent(id, "abc")).to.throw()
+      expect(() => ecs.addComponent(id, undefined, true)).to.throw()
+      expect(() => ecs.removeComponent(id, {}, true)).to.throw()
+    })
+
+    it("should throw error on invalid ID", function() {
+      const cmp = ecs.defineComponent()
+      ecs.createEntity()
+      expect(() => ecs.addComponent(-1, cmp)).to.throw()
+      expect(() => ecs.removeComponent("abc", cmp)).to.throw()
+      expect(() => ecs.addComponent(undefined, cmp, true)).to.throw()
+      expect(() => ecs.removeComponent({}, cmp, true)).to.throw()
     })
 
     it("should defer update", function() {
-      ecs.defineComponent("cmp")
+      const cmp = ecs.defineComponent()
       ecs.createEntity()
       ecs.createEntity()
       ecs.createEntity()
-      ecs.addComponent(0, "cmp", true)
-      ecs.addComponent(1, "cmp", true)
+      ecs.addComponent(0, cmp, true)
+      ecs.addComponent(1, cmp, true)
       expect(ecs._arch.size).to.equal(1)
       ecs.updatePending()
       expect(ecs._arch.size).to.equal(2)
-      ecs.removeComponent(0, "cmp", true)
-      ecs.removeComponent(2, "cmp", true)
+      ecs.removeComponent(0, cmp, true)
+      ecs.removeComponent(2, cmp, true)
       expect(ecs._ent[0]).to.equal(ecs._arch.get("1"))
       ecs.updatePending()
       expect(ecs._ent[0]).to.equal(ecs._empty)
       expect(ecs._ent[2]).to.equal(ecs._empty)
     })
-  })
-
-  describe("serialise / deserialise", function() {
-    for(let i = 0; i < 3; i++) {
-      it(`should produce effectively equal output (run #${i + 1})`, function() {
-        ecs = new ECS(1000)
-        ecs.defineComponent("cmp1")
-        ecs.defineComponent("cmp2", types.f64)
-        ecs.defineComponent("cmp3", {foo: types.u32, bar: types.i64})
-
-        const ids = []
-        for(let i = 0; i < 1000; i++) {
-          const r = Math.random() * 5
-          if(ids.length === 0 || r < 1) {
-            ids.push(ecs.createEntity())
-          } else if(r < 2) {
-            const id = ids.splice(Math.random() * ids.length, 1)[0]
-            ecs.destroyEntity(id)
-          } else if(r < 3) {
-            const id = ids[Math.floor(Math.random() * ids.length)]
-            ecs.addComponent(id, "cmp1")
-          } else if(r < 4) {
-            const id = ids[Math.floor(Math.random() * ids.length)]
-            ecs.addComponent(id, "cmp2")
-            ecs.components.cmp2[id] = Math.random() * 1000
-          } else if(r < 5) {
-            const id = ids[Math.floor(Math.random() * ids.length)]
-            ecs.addComponent(id, "cmp3")
-            ecs.components.cmp3.foo[id] = Math.random() * 1000
-            ecs.components.cmp3.bar[id] = BigInt(Math.floor(Math.random() * 1000))
-          }
-        }
-
-        const ecs2 = new ECS(ecs.serialise())
-        for(let i in ecs) {
-          if(!["_arch", "_ent", "_queries", "_rmkeys", "_empty"].includes(i)) {
-            expect(ecs[i]).to.eql(ecs2[i])
-          }
-        }
-        let c = 0
-        for(let i of ecs._arch) {
-          if(i[1].entities.length || i[1] === ecs._empty) {
-            expect(ecs2._arch.get(i[0]).entities).to.have.members(i[1].entities)
-            c++
-          }
-        }
-        expect(ecs2._empty).to.equal(ecs2._arch.get(ecs2._empty.mask.toString()))
-        expect(ecs2._arch.size).to.equal(c)
-        for(let i = 0; i < ecs._ent.length; i++) {
-          if(ecs._ent[i].has(i)) {
-            expect(ecs2._ent[i].mask).to.eql(ecs._ent[i].mask)
-            expect(ecs2._ent[i].has(i)).to.be.true
-          }
-        }
-        for(let i = 0; i < ecs._rmkeys.length; i++) {
-          expect(!!ecs2._rmkeys[i]).to.equal(!!ecs._rmkeys[i])
-        }
-        expect(ecs2).to.eql(new ECS(JSON.stringify(ecs.serialise())))
-      })
-    }
   })
 })

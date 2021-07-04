@@ -1,35 +1,10 @@
-import {Type, TypedArray} from "./types"
-import {encodeArr, decodeArr, FieldArray} from "./stringify"
-import {Query} from "./query"
+import {_componentData, createComponentArray, Tree, Type, ComponentArray} from "./component"
+import {all, Query, RawQuery} from "./query"
 import {Archetype} from "./archetype"
 import {add, remove} from "./sparseset"
 
-type Tree<LeafType> = LeafType | {[key: string]: Tree<LeafType>}
-
-type ComponentDef = Tree<Type>
-type ComponentArray = Tree<TypedArray>
-type ComponentJSON = Tree<FieldArray>
-
-function processTreeFactory<InputLeafType, OutputLeafType>( // Curry!
-  processLeaf: (x: InputLeafType) => OutputLeafType,
-  isLeaf: (x: Tree<InputLeafType>) => x is InputLeafType
-) {
-  return function processTree(node: Tree<InputLeafType>) {
-    if(isLeaf(node)) {
-      return processLeaf(node)
-    }
-    const ret: Tree<OutputLeafType> = {}
-    for(let i in node) {
-      ret[i] = processTree(node[i])
-    }
-    return ret
-  }
-}
-
-// ECS
 class ECS {
   protected _arch: Map<string, Archetype> = new Map()
-  protected _dex: {[cmp: string]: number} = {}
   protected _ent: Archetype[] = []
   protected _queries: Query[] = []
   protected _destroy: number[] = []
@@ -40,78 +15,25 @@ class ECS {
   protected _empty: Archetype = new Archetype(new Uint32Array())
   protected cmpID = 0
   protected entID = 0
-  components: {[name: string]: ComponentArray} = {}
-  MAX_ENTITIES: number = 1e4
+  readonly MAX_ENTITIES
+  readonly DEFAULT_DEFER
 
-  constructor(max?: number)
-  constructor(serialised: object | string)
-  constructor(arg: any) {
-    if(typeof arg === "number") {
-      this.MAX_ENTITIES = arg
-    } else if(arg !== undefined) {
-      if(typeof arg === "string") {
-        arg = JSON.parse(arg)
-      }
-      for(let i in arg) {
-        if(!["_ent", "components"].includes(i)) {
-          this[i as keyof ECS] = arg[i]
-        }
-      }
-      if(this.entID) {
-        this._initEmpty()
-      }
-      for(let i of arg._rm) {
-        this._rmkeys[i] = true
-      }
-      for(let i = 0; i < arg._ent.length; i++) {
-        if(arg._ent[i] !== 0) {
-          this._ent[i] = this._getArch(new Uint32Array(arg._ent[i]))
-          add(this._ent[i].keys, this._ent[i].entities, i)
-        }
-      }
-      for(let i in arg.components) {
-        this.components[i] = processTreeFactory(
-          (leaf: FieldArray) => decodeArr(leaf, this.MAX_ENTITIES),
-          (node: ComponentJSON): node is FieldArray => node instanceof Array
-        )(arg.components[i])
-      } // TODO: docs
-    }
+  constructor(max = 1e4, defer = false) {
+    this.MAX_ENTITIES = max
+    this.DEFAULT_DEFER = defer
   }
 
-  serialise() {
-    const ret: any = {} // TODO: better typings
-    for(let i in this) {
-      if(!["_arch", "_ent", "_queries", "_rmkeys", "_empty", "components"].includes(i)) {
-        ret[i] = this[i]
-      }
-    }
-    ret._ent = this._ent.map((a, i) => a.has(i) ? Array.from(a.mask) : 0)
-    ret.components = {}
-    for(let i in this.components) {
-      ret.components[i] = processTreeFactory(
-        encodeArr,
-        (node: ComponentArray): node is TypedArray => typeof node.length === "number"
-      )(this.components[i])
-    }
-    return ret
-  }
-
-  defineComponent(name: string, def: ComponentDef = {}) {
+  defineComponent<T extends Tree<Type>>(def: T): ComponentArray<T>
+  defineComponent(): {}
+  defineComponent(def: Tree<Type> = {}) {
     if(this.entID) {
       throw new Error("cannot define component after entity creation")
     }
-    if(name in this.components) {
-      throw new Error("duplicate component names")
-    }
-    if(/^[\w-]+$/.test(name)) {
-      this.components[name] = processTreeFactory(
-        (node: Type) => new node.arr(this.MAX_ENTITIES),
-        (node: ComponentDef): node is Type => node instanceof Type
-      )(def)
-      this._dex[name] = this.cmpID++
-      return this
-    }
-    throw new Error("invalid component name")
+    return this.registerComponent(createComponentArray(def, this.MAX_ENTITIES))
+  }
+
+  registerComponent<T>(cmp: T): T {
+    return Object.assign(cmp, {[_componentData]: {ecs: this, id: this.cmpID++}})
   }
 
   protected _initEmpty() {
@@ -119,36 +41,18 @@ class ECS {
     this._arch.set(this._empty.mask.toString(), this._empty)
   }
 
-  protected _validateComponent(cmp: number | undefined) {
-    if(cmp === undefined) {
-      throw new Error("invalid component name")
-    }
-  }
-
-  createQuery(...cmps: string[]): Query {
-    const or = cmps.filter(c => c.includes(" ")).map(i => i.split(" "))
-    cmps = cmps.filter(c => !c.includes(" "))
-    const query = new Query([cmps, ...or].map(i => {
-      const p: [(number | undefined)[], (number | undefined)[]] = [
-        i.filter(c => c[0] !== "!").map(c => this._dex[c]),
-        i.filter(c => c[0] === "!").map(c => this._dex[c.slice(1)])
-      ]
-      p.forEach(q => q.forEach(i => this._validateComponent(i)))
-      return p as [number[], number[]]
-    }))
+  createQuery(...raw: RawQuery[]): Query {
+    const query = new Query(this, all(...raw))
     this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.archetypes.push(i)}})
     this._queries.push(query)
     return query
   }
 
-  protected _validID(id: number) {
-    return !(this._rmkeys[id] || this.entID <= id)
-  }
-
-  protected _validateID(id: number) {
-    if(!this._validID(id)) {
-      throw new Error("invalid entity id")
+  protected _validID(id: unknown) {
+    if(typeof id !== "number") {
+      return false
     }
+    return !(this._rmkeys[id] || this.entID <= id)
   }
 
   protected _getArch(mask: Uint32Array) {
@@ -169,7 +73,6 @@ class ECS {
   }
 
   protected _archChange(id: number, i: number) {
-    this._validateID(id)
     const arch = this._ent[id]
     remove(arch.keys, arch.entities, id)
     if(!arch.change[i]) {
@@ -210,7 +113,7 @@ class ECS {
     }
   }
 
-  destroyEntity(id: number, defer: boolean = false) {
+  destroyEntity(id: number, defer = this.DEFAULT_DEFER) {
     if(defer) {
       add(this._destroykeys, this._destroy, id)
     } else {
@@ -222,7 +125,7 @@ class ECS {
   }
 
   destroyPending() {
-    for(;this._destroy.length > 0;) {
+    while(this._destroy.length > 0) {
       this.destroyEntity(this._destroy[0])
     }
     this._destroykeys = []
@@ -234,10 +137,11 @@ class ECS {
     }
   }
 
-  addComponent(id: number, cmp: string, defer: boolean = false) {
-    this._validateID(id)
-    const i = this._dex[cmp]
-    this._validateComponent(i)
+  addComponent(id: number, cmp: ComponentArray, defer = this.DEFAULT_DEFER) {
+    if(!this._validID(id)) {
+      throw new Error("invalid entity id")
+    }
+    const i = (cmp as any)[_componentData].id
     if(defer) {
       this._mcmp.addrm.push(true)
       this._mcmp.ent.push(id)
@@ -254,10 +158,11 @@ class ECS {
     }
   }
 
-  removeComponent(id: number, cmp: string, defer: boolean = false) {
-    this._validateID(id)
-    const i = this._dex[cmp]
-    this._validateComponent(i)
+  removeComponent(id: number, cmp: ComponentArray, defer = this.DEFAULT_DEFER) {
+    if(!this._validID(id)) {
+      throw new Error("invalid entity id")
+    }
+    const i = (cmp as any)[_componentData].id
     if(defer) {
       this._mcmp.addrm.push(false)
       this._mcmp.ent.push(id)
@@ -282,4 +187,4 @@ class ECS {
   }
 }
 
-export {ECS, Tree, ComponentDef, ComponentArray, ComponentJSON}
+export {ECS}

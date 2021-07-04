@@ -1,65 +1,113 @@
 import {Archetype} from "./archetype"
+import {_componentData, ComponentArray} from "./component"
+import {ECS} from "./ecs"
 
-type QueryMask = PartialQueryMask[]
-type PartialQueryMask = [Uint32Array, Uint32Array]
+function all<Q extends (RawQuery | ComponentArray)>(...cmps: Q[]) {
+  if(!cmps.length) {
+    throw new Error("no arguments passed")
+  }
+  return {op: all, dt: cmps}
+}
+
+function not<Q extends (RawQuery | ComponentArray)>(cmp: Q) {
+  return {op: not, dt: typeof (cmp as RawQuery).op === "function" ? cmp : all(cmp)}
+}
+
+function any<Q extends (RawQuery | ComponentArray)>(...cmps: Q[]) {
+  if(!cmps.length) {
+    throw new Error("no arguments passed")
+  }
+  return {op: any, dt: cmps}
+}
+
+type MLeaf = {op: typeof all | typeof any, dt: Uint32Array}
+type Group = {op: typeof all | typeof any, dt: [MLeaf, ...QueryMask[]]}
+type Not = {op: typeof not, dt: QueryMask}
+type QueryMask = Group | Not | MLeaf
+
+type RawQuery = {op: typeof all | typeof any, dt: (RawQuery | ComponentArray)[]}
+| {op: typeof not, dt: RawQuery | ComponentArray}
 
 class Query {
   mask: QueryMask
   archetypes: Archetype[] = []
+  ecs
 
-  constructor(q: [number[], number[]][] | undefined) {
-    const updateMask = (cmps: number[], mask: Uint32Array) => {
-      cmps.forEach(i => {
-        mask[Math.floor(i / 32)] |= 1 << i % 32
-      })
+  constructor(ecs: ECS, q: RawQuery | undefined) {
+    const crQuery = (raw: RawQuery): QueryMask => {
+      if(raw.op === not) {
+        return {op: raw.op, dt: crQuery(raw.dt as RawQuery)} as QueryMask
+      }
+      const nums: number[] = []
+      const ret: [MLeaf, ...QueryMask[]] = [{op: raw.op, dt: new Uint32Array()} as MLeaf]
+      for(let i of raw.dt as RawQuery[]) {
+        if(_componentData in i) {
+          if((i as any)[_componentData].ecs === ecs) {
+            nums.push((i as any)[_componentData].id)
+          } else {
+            throw new Error("component does not belong to this ECS")
+          }
+        } else {
+          ret.push(crQuery(i))
+        }
+      }
+      ret[0].dt = new Uint32Array(Math.ceil((Math.max(-1, ...nums) + 1) / 32))
+      for(let i of nums) {
+        ret[0].dt[Math.floor(i / 32)] |= 1 << i % 32
+      }
+      return {op: raw.op, dt: ret} as QueryMask
     }
-    this.mask = []
-    q = q ?? []
-    q.map((n, i) => {
-      const crMask = (x: number) => new Uint32Array(Math.ceil((Math.max(0, ...n[x]) + 1) / 32))
-      this.mask.push([crMask(0), crMask(1)])
-      updateMask(n[0], this.mask[i][0])
-      updateMask(n[1], this.mask[i][1])
-    })
+    this.mask = q ? crQuery(q) : {op: all, dt: new Uint32Array()}
+    this.ecs = ecs
   }
 
-  static match(target: Uint32Array, query: QueryMask) {
-    if(query.length) {
-      if(!Query.matchAll(target, query[0])) { // AND
-        return false
+  forEach(callbackfn: (id: number, ecs: ECS) => void) {
+    for(let i = 0, l = this.archetypes.length; i < l; i++) {
+      const ent = this.archetypes[i].entities
+      for(let j = ent.length; j > 0; j--) {
+        callbackfn(ent[j - 1], this.ecs)
       }
-      for(let q of query.slice(1)) { // OR
-        if(!Query.matchAny(target, q)) {
+    }
+  }
+
+  _forEach(callbackfn: (id: number, ecs: ECS) => void) {
+    this.forEach(callbackfn)
+  }
+
+  static match(target: Uint32Array, mask: QueryMask): boolean {
+    if("BYTES_PER_ELEMENT" in mask.dt) {
+      return Query.partial(target, mask as MLeaf)
+    }
+    if(mask.op === not) {
+      return !Query.match(target, mask.dt as QueryMask)
+    }
+    if(mask.op === all) {
+      for(let q of (mask as Group).dt) {
+        if(!Query.match(target, q)) {
           return false
         }
       }
+      return true
     }
-    return true
-  }
-
-  // TODO: remove code duplication
-  static matchAll(target: Uint32Array, mask: PartialQueryMask) {
-    for(let i = 0; i < mask[0].length; i++) {
-      if((target[i] & mask[0][i]) < mask[0][i]) {
-        return false
-      }
-    }
-    for(let i = 0; i < mask[1].length; i++) {
-      if((target[i] & mask[1][i]) > 0) {
-        return false
-      }
-    }
-    return true
-  }
-
-  static matchAny(target: Uint32Array, mask: PartialQueryMask) {
-    for(let i = 0; i < mask[0].length; i++) {
-      if((target[i] & mask[0][i]) > 0) {
+    for(let q of (mask as Group).dt) {
+      if(Query.match(target, q)) {
         return true
       }
     }
-    for(let i = 0; i < mask[1].length; i++) {
-      if((target[i] & mask[1][i]) < mask[1][i]) {
+    return false
+  }
+
+  protected static partial(target: Uint32Array, mask: MLeaf) {
+    if(mask.op === all) {
+      for(let i = 0; i < mask.dt.length; i++) {
+        if((target[i] & mask.dt[i]) < mask.dt[i]) {
+          return false
+        }
+      }
+      return true
+    }
+    for(let i = 0; i < mask.dt.length; i++) {
+      if((target[i] & mask.dt[i]) > 0) {
         return true
       }
     }
@@ -67,4 +115,4 @@ class Query {
   }
 }
 
-export {Query, QueryMask, PartialQueryMask}
+export {all, not, any, Query, QueryMask, RawQuery, MLeaf}
