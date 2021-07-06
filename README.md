@@ -11,7 +11,7 @@ The fastest Entity Component System library for the web.
 - Written in Typescript for full, up to date type support.
 - Zero dependencies.
 - NOT operator for queries.
-- It's by far the fastest JS/TS ECS framework that I know of. Benchmarks [here](https://github.com/noctjs/ecs-benchmark) and [here](https://github.com/EnderShadow8/js-ecs-benchmarks).
+- It's by far the fastest web ECS library that I know of. Benchmarks [here](https://github.com/noctjs/ecs-benchmark) and [here](https://github.com/EnderShadow8/js-ecs-benchmarks).
 
 ### Possible future features
 - Hierachies
@@ -20,13 +20,8 @@ The fastest Entity Component System library for the web.
 
 ## Installation
 ### Installing locally
-npm:
 ```
 npm i wolf-ecs
-```
-yarn:
-```
-yarn add wolf-ecs
 ```
 Alternatively, download the [latest release](https://github.com/EnderShadow8/wolf-ecs/releases) here on GitHub.
 
@@ -41,7 +36,7 @@ import { ECS, types, defineSystem } from "https://esm.run/wolf-ecs/wolf-ecs.js"
 
 *- [Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)*
 
-[This article](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d) explains ECS very well.
+[This article](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d) is a good overview of what ECS is and why it is used.
 
 ## Usage
 First create an ECS instance:
@@ -61,11 +56,11 @@ const position = ecs.defineComponent({
   y: types.f64,
 })
 ```
-The object passed defines the shape of the component.
+The object passed defines the shape of the component. Types are declared using the `types` constant.
 
 Types available include all numeric types supported by [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray)s:
 
-|||||
+| `types.` ||||
 | - | - | - | - |
 | `int8` || `i8` | `char` |
 | `uint8` || `u8` | `uchar` |
@@ -81,7 +76,7 @@ Types available include all numeric types supported by [`TypedArray`](https://de
 For more flexibility, there is also the `any` type.
 `custom` is a TypeScript alternative to `any` which allows for - you guessed it - custom types.
 ```ts
-const custom = ecs.defineComponent(types.custom<Set<number>>())
+const custom = ecs.defineComponent(types.custom<MyTypescriptType>())
 ```
 Call `ecs.defineComponent` with no arguments to create a tag component, which is usually used as a flag for systems.
 ```js
@@ -129,11 +124,12 @@ This is useful for avoiding double counting entities in queries, but is slower.
 ### Queries
 To define a query, use `ecs.defineQuery`:
 ```js
+// Matches entities which have both component1 and component2
 const query = ecs.defineQuery(component1, component2)
 ```
 There are helper functions for defining more complex queries: `all`, `any` and `not`.
 ```js
-const complexQuery = ecs.defineQuery(A, B, any(C, D, E), any(F, not(C), all(G, H, I))
+const complexQuery = ecs.defineQuery(A, B, any(C, D, E), any(F, not(C), all(G, H, I)))
 ```
 
 ### Systems
@@ -142,12 +138,12 @@ A system is a function which can be called. This involves iterating over the ent
 Using the builtin `query.forEach` function is the more convenient way:
 ```js
 function system() {
-  query.forEach(() => {
-    doStuff()
+  query.forEach(id => {
+    doStuff(id)
   })
 }
 ```
-However, this method has serious performance impacts (up to 10x slower) due to the whims of the JS engine.
+However, this method has serious performance impacts (up to 10x slower) due to whims of the JS engine.
 
 The more performant method of iterating queries is using a manual for loop:
 ```js
@@ -156,7 +152,7 @@ function system() {
     const arch = query.archetypes[i].entities
     for(let j = arch.length - 1; j >= 0; j--) { // Backward iteration helps prevent double counting entities
       const id = arch[j]
-      console.log(id)
+      doStuff(id)
     }
   }
 }
