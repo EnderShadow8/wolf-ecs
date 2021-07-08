@@ -10,7 +10,7 @@ The fastest Entity Component System library for the web.
 ## Features
 - Written in Typescript for full, up to date type support.
 - Zero dependencies.
-- NOT operator for queries.
+- Advanced query operators.
 - It's by far the fastest web ECS library that I know of. Benchmarks [here](https://github.com/noctjs/ecs-benchmark) and [here](https://github.com/EnderShadow8/js-ecs-benchmarks).
 
 ### Possible future features
