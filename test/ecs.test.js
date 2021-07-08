@@ -106,17 +106,19 @@ describe("ECS", function() {
   })
 
   describe("createEntity / destroyEntity", function() {
-    it("should aloocate and recycle IDs", function() {
+    it("should allocate and recycle IDs", function() {
       const id1 = ecs.createEntity()
       ecs.destroyEntity(id1)
-      expect(ecs._rm).to.have.members([id1])
+      expect(ecs._rm.packed[0]).to.equal(id1)
+      expect(ecs._rm.packed.length).to.equal(1)
+      console.log(ecs._rm)
       const id2 = ecs.createEntity()
-      expect(ecs._rm).to.eql([])
+      expect(ecs._rm.packed.length).to.equal(0)
       const id3 = ecs.createEntity()
       ecs.destroyEntity(id2)
       ecs.destroyEntity(id3)
       expect([id2, id3]).to.include(id1)
-      expect(ecs._rm).to.have.members([id2, id3])
+      expect(Array.from(ecs._rm.packed.slice(0, ecs._rm.packed.length))).to.have.members([id2, id3])
     })
 
     it("should update archetypes", function() {
@@ -152,12 +154,12 @@ describe("ECS", function() {
       ecs.createEntity()
       ecs.createEntity()
       ecs.createEntity()
-      expect(ecs._rm).to.eql([])
+      expect(ecs._rm.packed.length).to.equal(0)
       ecs.destroyEntity(0, true)
       ecs.destroyEntity(2, true)
-      expect(ecs._rm).to.eql([])
+      expect(ecs._rm.packed.length).to.equal(0)
       ecs.destroyPending()
-      expect(ecs._rm).to.have.members([0, 2])
+      expect(Array.from(ecs._rm.packed)).to.have.members([0, 2])
     })
 
     it("should throw on max entity limit", function() {

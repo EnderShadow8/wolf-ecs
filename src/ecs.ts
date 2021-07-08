@@ -1,18 +1,15 @@
 import {_componentData, createComponentArray, Tree, Type, ComponentArray} from "./component"
 import {all, Query, RawQuery} from "./query"
-import {Archetype} from "./archetype"
-import {add, remove} from "./sparseset"
+import {SparseSet, Archetype} from "./sparseset"
 
 class ECS {
   protected _arch: Map<string, Archetype> = new Map()
   protected _ent: Archetype[] = []
   protected _queries: Query[] = []
-  protected _destroy: number[] = []
-  protected _destroykeys: number[] = []
+  protected _destroy: SparseSet
   protected _mcmp: {addrm: boolean[], ent: number[], cmp: number[]} = {addrm: [], ent: [], cmp: []}
-  protected _rm: number[] = []
-  protected _rmkeys: boolean[] = []
-  protected _empty: Archetype = new Archetype(new Uint32Array())
+  protected _rm: SparseSet
+  protected _empty: Archetype
   protected cmpID = 0
   protected entID = 0
   readonly MAX_ENTITIES
@@ -21,6 +18,9 @@ class ECS {
   constructor(max = 1e4, defer = false) {
     this.MAX_ENTITIES = max
     this.DEFAULT_DEFER = defer
+    this._destroy = new SparseSet()
+    this._rm = new SparseSet()
+    this._empty = new Archetype(new Uint32Array())
   }
 
   defineComponent<T extends Tree<Type>>(def: T): ComponentArray<T>
@@ -52,7 +52,7 @@ class ECS {
     if(typeof id !== "number") {
       return false
     }
-    return !(this._rmkeys[id] || this.entID <= id)
+    return !(this._rm.has(id) || this.entID <= id)
   }
 
   protected _getArch(mask: Uint32Array) {
@@ -74,7 +74,7 @@ class ECS {
 
   protected _archChange(id: number, i: number) {
     const arch = this._ent[id]
-    remove(arch.keys, arch.entities, id)
+    arch.sset.remove(id)
     if(!arch.change[i]) {
       if(this._hasComponent(arch.mask, i)) {
         arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
@@ -87,18 +87,17 @@ class ECS {
       }
     }
     this._ent[id] = arch.change[i]
-    add(this._ent[id].keys, this._ent[id].entities, id)
+    this._ent[id].sset.add(id)
   }
 
   protected _crEnt(id: number) {
     this._ent[id] = this._empty
-    add(this._empty.keys, this._empty.entities, id)
+    this._empty.sset.add(id)
   }
 
   createEntity(): number {
-    if(this._rm.length) {
-      const id = this._rm.pop()!
-      this._rmkeys[id] = false
+    if(this._rm.packed.length) {
+      const id = this._rm.packed.pop()!
       this._crEnt(id)
       return id
     } else {
@@ -115,20 +114,19 @@ class ECS {
 
   destroyEntity(id: number, defer = this.DEFAULT_DEFER) {
     if(defer) {
-      add(this._destroykeys, this._destroy, id)
+      this._destroy.add(id)
     } else {
-      remove(this._ent[id].keys, this._ent[id].entities, id)
-      remove(this._destroykeys, this._destroy, id)
-      this._rm.push(id)
-      this._rmkeys[id] = true
+      this._ent[id].sset.remove(id)
+      this._destroy.remove(id)
+      this._rm.add(id)
     }
   }
 
   destroyPending() {
-    while(this._destroy.length > 0) {
-      this.destroyEntity(this._destroy[0])
+    while(this._destroy.packed.length > 0) {
+      this.destroyEntity(this._destroy.packed[0])
     }
-    this._destroykeys = []
+    this._destroy.packed.length = 0
   }
 
   protected _addcmp(id: number, cmp: number) {
