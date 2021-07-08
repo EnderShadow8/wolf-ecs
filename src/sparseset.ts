@@ -1,22 +1,42 @@
-function has(sparse: number[], packed: number[], x: number) {
-  return packed[sparse[x]] === x
-}
+class SparseSet {
+  packed: number[] = []
+  sparse: number[] = []
 
-function add(sparse: number[], packed: number[], x: number) {
-  if(!has(sparse, packed, x)) {
-    sparse[x] = packed.length
-    packed.push(x)
+  has(x: number) {
+    return this.sparse[x] < this.packed.length && this.packed[this.sparse[x]] === x
   }
-}
 
-function remove(sparse: number[], packed: number[], x: number) {
-  if(has(sparse, packed, x)) {
-    const last = packed.pop()!
-    if(x !== last) {
-      sparse[last] = sparse[x]
-      packed[sparse[x]] = last
+  add(x: number) {
+    if (!this.has(x)) {
+      this.sparse[x] = this.packed.length
+      this.packed.push(x)
+    }
+  }
+
+  remove(x: number) {
+    if (this.has(x)) {
+      const last = this.packed.pop()!
+      if (x !== last) {
+        this.sparse[last] = this.sparse[x]
+        this.packed[this.sparse[x]] = last
+      }
     }
   }
 }
 
-export {has, add, remove}
+class Archetype {
+  sset = new SparseSet()
+  entities = this.sset.packed
+  mask
+  change: Archetype[] = []
+
+  constructor(mask: Uint32Array) {
+    this.mask = mask
+  }
+
+  has(x: number) {
+    return this.sset.has(x)
+  }
+}
+
+export {SparseSet, Archetype}

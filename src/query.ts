@@ -1,4 +1,4 @@
-import {Archetype} from "./archetype"
+import {Archetype} from "./sparseset"
 import {_componentData, ComponentArray} from "./component"
 import {ECS} from "./ecs"
 
