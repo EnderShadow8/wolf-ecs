@@ -12,11 +12,11 @@
   "type": "module",
   "scripts": {
     "test": "c8 --check-coverage --branches 100 --all --include build mocha --experimental-specifier-resolution=node",
-    "test-nocheck": "c8 --all --include build mocha --experimental-specifier-resolution=node",
     "pub": "npm run build && (cd dist; npm publish && (cd ../; npm run gh-release))",
     "gh-release": "gh release create $(git describe --tags --abbrev=0) dist/*.js dist/*.d.ts -n \"\"",
-    "build": "rm -rf build; tsc; npm run test && (rm -rf dist; rollup -c; cp package.json README.md dist)",
-    "build-nocheck": "rm -rf build; tsc; npm run test-nocheck; rm -rf dist; rollup -c; cp package.json README.md dist"
+    "build": "npm run test && (rm -rf dist; rollup -c; cp package.json README.md dist)",
+    "build-nocheck": "npm run test; rm -rf dist; rollup -c; cp package.json README.md dist",
+    "start": "tsc -w"
   },
   "repository": {
     "type": "git",
