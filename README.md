@@ -28,7 +28,7 @@ Alternatively, download the [latest release](https://github.com/EnderShadow8/wol
 ### Using a CDN
 JSDelivr:
 ```js
-import { ECS, types, defineSystem } from "https://esm.run/wolf-ecs/wolf-ecs.js"
+import { ECS, all, any, not, types } from "https://esm.run/wolf-ecs/wolf-ecs.js"
 ```
 
 ## More on ECS
