@@ -47,6 +47,17 @@ The ECS constructor takes two arguments:
 - `max: number = 1e4` which is the hard limit for the number of entities at a single time.
 - `defer: boolean = false` which sets the value of `ecs.DEFAULT_DEFER`, which I'll get to later.
 
+Use `ecs.bind()` to bind the value of `this` to the methods which allows omission of the `ecs.` prefix.
+```js
+const ecs = new ECS()
+const {
+  defineComponent,
+  createQuery,
+  createEntity,
+  etc.
+} = ecs.bind()
+```
+
 ### Define components
 Components are defined using `ecs.defineComponent`:
 ```js

@@ -11,11 +11,6 @@ describe("ECS", function() {
     ecs = new ECS()
   })
 
-  it("should set MAX_ENTITIES to 1e4", function() {
-    ecs = new ECS(1e4)
-    expect(ecs.MAX_ENTITIES).to.equal(1e4)
-  })
-
   describe("defineComponent", function() {
     it("should initialise component pools as defined", function() {
       const single = ecs.defineComponent(types.u16)
