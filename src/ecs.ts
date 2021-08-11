@@ -23,6 +23,17 @@ class ECS {
     this._empty = new Archetype(new Uint32Array())
   }
 
+  bind(): Pick<ECS, Exclude<{[K in keyof ECS]: ECS[K] extends Function ? K : never}[keyof ECS], "bind">> {
+    const proto = ECS.prototype
+    const ret: any = {}
+    for(let i of Object.getOwnPropertyNames(proto) as (keyof ECS)[]) {
+      if(typeof proto[i] === "function" && i !== "bind") {
+        ret[i] = (proto[i] as any).bind(this)
+      }
+    } 
+    return ret
+  }
+
   defineComponent<T extends Tree<Type>>(def: T): ComponentArray<T>
   defineComponent(): {}
   defineComponent(def: Tree<Type> = {}) {
