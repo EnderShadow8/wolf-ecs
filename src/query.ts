@@ -68,6 +68,8 @@ class Query {
         callbackfn(ent[j - 1], this.ecs)
       }
     }
+    this.ecs.destroyPending()
+    this.ecs.updatePending()
   }
 
   _forEach(callbackfn: (id: number, ecs: ECS) => void) {

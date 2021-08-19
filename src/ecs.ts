@@ -4,12 +4,13 @@ import {SparseSet, Archetype} from "./sparseset"
 
 class ECS {
   protected _arch: Map<string, Archetype> = new Map()
-  protected _ent: Archetype[] = []
   protected _queries: Query[] = []
-  protected _destroy: SparseSet
-  protected _mcmp: {addrm: boolean[], ent: number[], cmp: number[]} = {addrm: [], ent: [], cmp: []}
-  protected _rm: SparseSet
-  protected _empty: Archetype
+  protected _ent: Archetype[] = []
+  protected _updateTo: Archetype[] = []
+  protected _toUpdate = new SparseSet()
+  protected _toDestroy = new SparseSet()
+  protected _rm = new SparseSet()
+  protected _empty = new Archetype(new Uint32Array())
   protected cmpID = 0
   protected entID = 0
   readonly MAX_ENTITIES
@@ -18,9 +19,6 @@ class ECS {
   constructor(max = 1e4, defer = false) {
     this.MAX_ENTITIES = max
     this.DEFAULT_DEFER = defer
-    this._destroy = new SparseSet()
-    this._rm = new SparseSet()
-    this._empty = new Archetype(new Uint32Array())
   }
 
   bind(): Pick<ECS, Exclude<{[K in keyof ECS]: ECS[K] extends Function ? K : never}[keyof ECS], "bind">> {
@@ -30,7 +28,7 @@ class ECS {
       if(typeof proto[i] === "function" && i !== "bind") {
         ret[i] = (proto[i] as any).bind(this)
       }
-    } 
+    }
     return ret
   }
 
@@ -45,11 +43,6 @@ class ECS {
 
   registerComponent<T>(cmp: T): T {
     return Object.assign(cmp, {[_componentData]: {ecs: this, id: this.cmpID++}})
-  }
-
-  protected _initEmpty() {
-    this._empty.mask = new Uint32Array(Math.ceil(this.cmpID / 32))
-    this._arch.set(this._empty.mask.toString(), this._empty)
   }
 
   createQuery(...raw: RawQuery[]): Query {
@@ -80,29 +73,20 @@ class ECS {
   }
 
   protected _hasComponent(mask: Uint32Array, i: number) {
-    return mask[Math.floor(i / 32)] & (1 << i % 32)
+    return mask[~~(i / 32)] & (1 << i % 32)
   }
 
-  protected _archChange(id: number, i: number) {
-    const arch = this._ent[id]
-    arch.sset.remove(id)
+  protected _archChange(arch: Archetype, i: number) {
     if(!arch.change[i]) {
-      if(this._hasComponent(arch.mask, i)) {
-        arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
-        arch.change[i] = this._getArch(arch.mask)
-        arch.mask[Math.floor(i / 32)] |= 1 << i % 32
-      } else {
-        arch.mask[Math.floor(i / 32)] |= 1 << i % 32
-        arch.change[i] = this._getArch(arch.mask)
-        arch.mask[Math.floor(i / 32)] &= ~(1 << i % 32)
-      }
+      arch.mask[~~(i / 32)] ^= 1 << i % 32
+      arch.change[i] = this._getArch(arch.mask)
+      arch.mask[~~(i / 32)] ^= 1 << i % 32
     }
-    this._ent[id] = arch.change[i]
-    this._ent[id].sset.add(id)
+    return arch.change[i]
   }
 
   protected _crEnt(id: number) {
-    this._ent[id] = this._empty
+    this._ent[id] = this._updateTo[id] = this._empty
     this._empty.sset.add(id)
   }
 
@@ -113,7 +97,8 @@ class ECS {
       return id
     } else {
       if(!this.entID) {
-        this._initEmpty()
+        this._empty.mask = new Uint32Array(Math.ceil(this.cmpID / 32))
+        this._arch.set(this._empty.mask.toString(), this._empty)
       }
       if(this.entID === this.MAX_ENTITIES) {
         throw new Error("maximum entity limit reached")
@@ -125,25 +110,19 @@ class ECS {
 
   destroyEntity(id: number, defer = this.DEFAULT_DEFER) {
     if(defer) {
-      this._destroy.add(id)
+      this._toDestroy.add(id)
     } else {
       this._ent[id].sset.remove(id)
-      this._destroy.remove(id)
+      this._toDestroy.remove(id)
       this._rm.add(id)
     }
   }
 
   destroyPending() {
-    while(this._destroy.packed.length > 0) {
-      this.destroyEntity(this._destroy.packed[0])
+    while(this._toDestroy.packed.length > 0) {
+      this.destroyEntity(this._toDestroy.packed[0])
     }
-    this._destroy.packed.length = 0
-  }
-
-  protected _addcmp(id: number, cmp: number) {
-    if(!this._hasComponent(this._ent[id].mask, cmp)) {
-      this._archChange(id, cmp)
-    }
+    this._toDestroy.packed.length = 0
   }
 
   addComponent(id: number, cmp: ComponentArray, defer = this.DEFAULT_DEFER) {
@@ -152,19 +131,18 @@ class ECS {
     }
     const i = (cmp as any)[_componentData].id
     if(defer) {
-      this._mcmp.addrm.push(true)
-      this._mcmp.ent.push(id)
-      this._mcmp.cmp.push(i)
+      this._toUpdate.add(id)
     } else {
-      this._addcmp(id, i)
+      if(!this._hasComponent(this._ent[id].mask, i)) {
+        this._ent[id].sset.remove(id)
+        this._ent[id] = this._archChange(this._ent[id], i)
+        this._ent[id].sset.add(id)
+      }
+    }
+    if(!this._hasComponent(this._updateTo[id].mask, i)) {
+      this._updateTo[id] = this._archChange(this._updateTo[id], i)
     }
     return this
-  }
-
-  protected _rmcmp(id: number, cmp: number) {
-    if(this._hasComponent(this._ent[id].mask, cmp)) {
-      this._archChange(id, cmp)
-    }
   }
 
   removeComponent(id: number, cmp: ComponentArray, defer = this.DEFAULT_DEFER) {
@@ -173,26 +151,31 @@ class ECS {
     }
     const i = (cmp as any)[_componentData].id
     if(defer) {
-      this._mcmp.addrm.push(false)
-      this._mcmp.ent.push(id)
-      this._mcmp.cmp.push(i)
+      this._toUpdate.add(id)
     } else {
-      this._rmcmp(id, i)
+      if(this._hasComponent(this._ent[id].mask, i)) {
+        this._ent[id].sset.remove(id)
+        this._ent[id] = this._archChange(this._ent[id], i)
+        this._ent[id].sset.add(id)
+      }
+    }
+    if(this._hasComponent(this._updateTo[id].mask, i)) {
+      this._updateTo[id] = this._archChange(this._updateTo[id], i)
     }
     return this
   }
 
   updatePending() {
-    for(let i = this._mcmp.addrm.length - 1; i >= 0; i--) {
-      if(this._validID(this._mcmp.ent[i])) {
-        if(this._mcmp.addrm[i]) {
-          this._addcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
-        } else {
-          this._rmcmp(this._mcmp.ent[i], this._mcmp.cmp[i])
-        }
+    const arr = this._toUpdate.packed
+    for(let i = 0; i < arr.length; i++) {
+      const id = arr[i]
+      if(this._validID(id)) {
+        this._ent[id].sset.remove(id)
+        this._ent[id] = this._updateTo[id]
+        this._ent[id].sset.add(id)
       }
     }
-    this._mcmp = {addrm: [], ent: [], cmp: []}
+    this._toUpdate.packed = []
   }
 }
 

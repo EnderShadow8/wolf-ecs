@@ -106,7 +106,6 @@ describe("ECS", function() {
       ecs.destroyEntity(id1)
       expect(ecs._rm.packed[0]).to.equal(id1)
       expect(ecs._rm.packed.length).to.equal(1)
-      console.log(ecs._rm)
       const id2 = ecs.createEntity()
       expect(ecs._rm.packed.length).to.equal(0)
       const id3 = ecs.createEntity()
@@ -119,16 +118,14 @@ describe("ECS", function() {
     it("should update archetypes", function() {
       const cmp = ecs.defineComponent()
       const id1 = ecs.createEntity()
-      expect(ecs._empty).to.equal(ecs._arch.get("0"))
       const id2 = ecs.createEntity()
-      expect(ecs._empty.has(id1)).to.be.true
-      expect(ecs._empty.has(id2)).to.be.true
+      assertArch(id1, "0")
+      assertArch(id2, "0")
       ecs.addComponent(id1, cmp)
       ecs.destroyEntity(id1)
       ecs.destroyEntity(id2)
-      expect(ecs._empty.has(id1)).to.be.false
-      expect(ecs._arch.get("1").has(id1)).to.be.false
-      expect(ecs._empty.has(id2)).to.be.false
+      assertArch(id1)
+      assertArch(id2)
     })
 
     it("should set _empty to the empty archetype", function() {
@@ -178,24 +175,20 @@ describe("ECS", function() {
       const q2 = ecs.createQuery(cmp1, not(cmp2))
 
       ecs.addComponent(id, cmp1)
-      expect(ecs._arch.get("0").has(id)).to.be.false
-      expect(ecs._arch.get("1").has(id)).to.be.true
+      assertArch(id, "1")
       expect(q1.archetypes).to.have.members(arches("1"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
       ecs.addComponent(id, cmp2)
-      expect(arches("0", "1").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("3").has(id)).to.be.true
+      assertArch(id, "3")
 
       ecs.removeComponent(id, cmp1)
-      expect(arches("0", "1", "3").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("2").has(id)).to.be.true
+      assertArch(id, "2")
       expect(q1.archetypes).to.have.members(arches("1", "3"))
       expect(q2.archetypes).to.have.members(arches("1"))
 
       ecs.removeComponent(id, cmp2)
-      expect(arches("1", "2", "3").map(i => i.has(id))).to.not.include(true)
-      expect(ecs._arch.get("0").has(id)).to.be.true
+      assertArch(id, "0")
     })
 
     it("should throw error on invalid component", function() {
@@ -217,20 +210,26 @@ describe("ECS", function() {
 
     it("should defer update", function() {
       const cmp = ecs.defineComponent()
-      ecs.createEntity()
-      ecs.createEntity()
-      ecs.createEntity()
-      ecs.addComponent(0, cmp, true)
-      ecs.addComponent(1, cmp, true)
-      expect(ecs._arch.size).to.equal(1)
+      const id1 = ecs.createEntity()
+      const id2 = ecs.createEntity()
+      ecs.addComponent(id1, cmp, true)
+      assertArch(id1, "0")
       ecs.updatePending()
-      expect(ecs._arch.size).to.equal(2)
-      ecs.removeComponent(0, cmp, true)
-      ecs.removeComponent(2, cmp, true)
-      expect(ecs._ent[0]).to.equal(ecs._arch.get("1"))
+      assertArch(id1, "1")
+      ecs.removeComponent(id1, cmp, true)
+      ecs.removeComponent(id2, cmp, true)
+      assertArch(id1, "1")
+      assertArch(id2, "0")
       ecs.updatePending()
-      expect(ecs._ent[0]).to.equal(ecs._empty)
-      expect(ecs._ent[2]).to.equal(ecs._empty)
+      assertArch(id1, "0")
+      assertArch(id2, "0")
     })
   })
 })
+
+function assertArch(id, arch) {
+  expect(ecs._ent[id].has(id))
+  for(let i of ecs._arch.keys()) {
+    expect(ecs._arch.get(i).has(id)).to.equal(i === arch)
+  }
+}
