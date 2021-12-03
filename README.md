@@ -133,14 +133,14 @@ ecs.updatePending() // Executes all pending add/remove calls
 This is useful for avoiding double counting entities in queries, but is slower.
 
 ### Queries
-To define a query, use `ecs.defineQuery`:
+To define a query, use `ecs.createQuery`:
 ```js
 // Matches entities which have both component1 and component2
-const query = ecs.defineQuery(component1, component2)
+const query = ecs.createQuery(component1, component2)
 ```
 There are helper functions for defining more complex queries: `all`, `any` and `not`.
 ```js
-const complexQuery = ecs.defineQuery(A, B, any(C, D, E), any(F, not(C), all(G, H, I)))
+const complexQuery = ecs.createQuery(A, B, any(C, D, E), any(F, not(C), all(G, H, I)))
 ```
 
 ### Systems
@@ -154,7 +154,7 @@ function system() {
   })
 }
 ```
-However, this method has serious performance impacts (up to 10x slower) due to whims of the JS engine.
+However, this method has can sometimes have performance impacts due to whims of the JS engine.
 
 The more performant method of iterating queries is using a manual for loop:
 ```js
