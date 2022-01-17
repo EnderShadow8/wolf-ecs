@@ -8,33 +8,9 @@ function custom<T>(init?: () => T) {
 }
 
 function arrayOf<T extends Tree<Type>>(length: number, def: T): T {
-  const go = (max: number) => {
-    const actualLength = length * max
-
-    if (typeof def === "function") {
-      return new (def as any)(actualLength)
-    }
-    
-    if(def instanceof Array) {
-      if(def.length) {
-        return [...new Array(actualLength)].map(def[0] as any) as any
-      }
-
-      return new Array(actualLength) as any
-    }
-
-    const ret: ComponentArray = {}
-
-    for(let i in def) {
-      ret[i] = new (arrayOf(length,def[i] as any) as any)(max)
-    }
-
-    return ret as any
-  }
- 
   return class ArrayOf {
     constructor(size: number) {
-      return go(size)
+      return createComponentArray(def, length * size)
     }
   } as any;
 } 
