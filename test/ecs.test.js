@@ -16,6 +16,15 @@ describe("ECS", function() {
       const single = ecs.defineComponent(types.u16)
       const compound = ecs.defineComponent({f32: types.f32, more: {f64: types.f64}})
       const custom = ecs.defineComponent({custom: types.custom(), init: types.custom(() => 123), any: types.any})
+      const array = ecs.defineComponent({
+        basic: types.arrayOf(10, types.f32),
+        compound: types.arrayOf(20, {
+          first: types.f64,
+          second: types.i32
+        }),
+        custom: types.arrayOf(5, types.custom(() => 321))
+      })
+
       const empty = ecs.defineComponent()
       expect(single).to.eql(new Uint16Array(ecs.MAX_ENTITIES))
       expect(compound.f32).to.eql(new Float32Array(ecs.MAX_ENTITIES))
@@ -23,6 +32,10 @@ describe("ECS", function() {
       expect(custom.custom).to.be.instanceof(Array)
       expect(custom.init).to.eql(new Array(10000).fill(123))
       expect(custom.any).to.be.instanceof(Array)
+      expect(array.basic).to.eql(new Float32Array(ecs.MAX_ENTITIES * 10))
+      expect(array.compound.first).to.eql(new Float64Array(ecs.MAX_ENTITIES * 20))
+      expect(array.compound.second).to.eql(new Int32Array(ecs.MAX_ENTITIES * 20))
+      expect(array.custom).to.eql(new Array(10000 * 5).fill(321))
       expect(empty).to.eql({})
     })
 
