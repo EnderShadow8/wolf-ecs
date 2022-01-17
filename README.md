@@ -84,6 +84,18 @@ Types available include all numeric types supported by [`TypedArray`](https://de
 | `int64` | `bigint64` | `i64` | `long` |
 | `uint64`| `biguint64`  | `u64` | `ulong` |
 
+Creating fixed size arrays is done using the `arrayOf` type:
+```ts
+const array = ecs.defineComponent(types.arrayOf(
+  2, // amount of elements per entity 
+  types.u8 // type of elements
+))
+
+// accessing elements
+const x = array[eid * 2]
+const y = array[eid * 2 + 1]
+```
+
 For more flexibility, there is also the `any` type.
 `custom` is a TypeScript alternative to `any` which allows for - you guessed it - custom types.
 ```ts
