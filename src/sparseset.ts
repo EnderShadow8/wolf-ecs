@@ -27,6 +27,7 @@ class SparseSet {
 class Archetype {
   sset = new SparseSet()
   entities = this.sset.packed
+  e = this.entities
   mask
   change: Archetype[] = []
 

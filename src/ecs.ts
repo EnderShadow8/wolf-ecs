@@ -47,7 +47,7 @@ class ECS {
 
   createQuery(...raw: RawQuery[]): Query {
     const query = new Query(this, all(...raw))
-    this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.archetypes.push(i)}})
+    this._arch.forEach(i => {if(Query.match(i.mask, query.mask)) {query.a.push(i)}})
     this._queries.push(query)
     return query
   }
@@ -65,7 +65,7 @@ class ECS {
       this._arch.set(mask.toString(), arch)
       for(let q of this._queries) {
         if(Query.match(mask, q.mask)) {
-          q.archetypes.push(arch)
+          q.a.push(arch)
         }
       }
     }

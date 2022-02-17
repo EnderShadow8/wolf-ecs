@@ -31,6 +31,7 @@ type RawQuery = {op: typeof all | typeof any, dt: (RawQuery | ComponentArray)[]}
 class Query {
   mask: QueryMask
   archetypes: Archetype[] = []
+  a = this.archetypes
   ecs
 
   constructor(ecs: ECS, q: RawQuery | undefined) {
@@ -62,8 +63,8 @@ class Query {
   }
 
   forEach(callbackfn: (id: number, ecs: ECS) => void) {
-    for(let i = 0, l = this.archetypes.length; i < l; i++) {
-      const ent = this.archetypes[i].entities
+    for(let i = 0, l = this.a.length; i < l; i++) {
+      const ent = this.a[i].e
       for(let j = ent.length; j > 0; j--) {
         callbackfn(ent[j - 1], this.ecs)
       }

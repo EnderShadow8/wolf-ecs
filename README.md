@@ -159,8 +159,8 @@ However, this method has can sometimes have performance impacts due to whims of 
 The more performant method of iterating queries is using a manual for loop:
 ```js
 function system() {
-  for(let i = 0; i < query.archetypes.length; i++) {
-    const arch = query.archetypes[i].entities
+  for(let i = 0; i < query.a.length; i++) {
+    const arch = query.a[i].e
     for(let j = arch.length - 1; j >= 0; j--) { // Backward iteration helps prevent double counting entities
       const id = arch[j]
       doStuff(id)

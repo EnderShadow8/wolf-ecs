@@ -61,8 +61,8 @@ describe("ECS", function() {
       const hasq = ecs.createQuery(cmp)
       const notq = ecs.createQuery(not(cmp))
 
-      expect(hasq.archetypes).to.eql([ecs._arch.get("1")])
-      expect(notq.archetypes).to.eql([ecs._arch.get("0")])
+      expect(hasq.a).to.eql([ecs._arch.get("1")])
+      expect(notq.a).to.eql([ecs._arch.get("0")])
     })
 
     it("should throw error on invalid component", function() {
@@ -176,16 +176,16 @@ describe("ECS", function() {
 
       ecs.addComponent(id, cmp1)
       assertArch(id, "1")
-      expect(q1.archetypes).to.have.members(arches("1"))
-      expect(q2.archetypes).to.have.members(arches("1"))
+      expect(q1.a).to.have.members(arches("1"))
+      expect(q2.a).to.have.members(arches("1"))
 
       ecs.addComponent(id, cmp2)
       assertArch(id, "3")
 
       ecs.removeComponent(id, cmp1)
       assertArch(id, "2")
-      expect(q1.archetypes).to.have.members(arches("1", "3"))
-      expect(q2.archetypes).to.have.members(arches("1"))
+      expect(q1.a).to.have.members(arches("1", "3"))
+      expect(q2.a).to.have.members(arches("1"))
 
       ecs.removeComponent(id, cmp2)
       assertArch(id, "0")
