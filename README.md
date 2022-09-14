@@ -7,16 +7,13 @@
 
 The fastest Entity Component System library for the web.
 
+## NOTE: this shouldn't be used for games or applications, it exists solely to demonstrate the upper bound on speed in benchmarks
+
 ## Features
 - Written in Typescript for full, up to date type support.
 - Zero dependencies.
 - Advanced query operators.
 - It's by far the fastest web ECS library that I know of. Benchmarks [here](https://github.com/noctjs/ecs-benchmark) and [here](https://github.com/EnderShadow8/js-ecs-benchmarks).
-
-### Possible future features
-- Hierachies
-- Multithreading
-- [Finite state machine support](https://ajmmertens.medium.com/why-storing-state-machines-in-ecs-is-a-bad-idea-742de7a18e59) (Sander Mertens)
 
 ## Installation
 ### Installing locally
@@ -168,7 +165,6 @@ function system() {
   }
 }
 ```
-I've written a [Babel plugin](https://github.com/EnderShadow8/wolf-ecs-system-transform/tree/main) to transform the former style into the latter.
 
 ## Contributing
 Small pull requests are welcome. For major changes, please open an issue first to discuss the changes you'd like to make.
